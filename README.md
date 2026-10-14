@@ -15,7 +15,7 @@
 
 Standard AI coding assistants operate as monolithic single agents. When faced with complex features or large refactors, developers frequently face critical bottlenecks:
 * **Google's Monetization Trap & The Model Void**: In a transparent push for commercial monetization, Google removed the sweet-spot **Gemini 3.1 Pro** from the Antigravity client. Developers are left stranded between **Gemini 4 Argon (a notorious "Quota Assassin" whose deep-thinking tokens devour monthly tier limits in minutes)** and **Gemini 3.8 Flash (lightweight and cheap, but still no match for 3.1 Pro on complex multi-file reasoning and refactoring)**. Local quotas drain at alarming speeds;
-* **The Untapped Ultra / Jules Treasure**: Many developers subscribe to Google Ultra or possess Google Cloud quotas with abundant, rich **Google Cloud Jules allowances**, but Antigravity provides no native way to exploit this quota during everyday IDE development—leaving premium compute sitting idle;
+* **The Untapped Jules Treasure**: Many developers subscribe to Google Ultra, with abundant, high-volume **Google Cloud Jules allowances** sitting in their accounts, yet Antigravity provides zero native integration to leverage them—leaving massive amounts of premium compute completely idle;
 * **Context Window Pollution**: Raw compile logs, test stack traces, and trial-and-error attempts flood the main conversation context;
 * **Source Code Corruption**: Agents directly mutate production source files, risking broken working trees and hallucinated deletions;
 * **Repeated Anti-Patterns**: Without negative knowledge tracking, agents repeatedly suggest dead-end solutions previously proven broken.
@@ -82,7 +82,7 @@ python configure.py --doctor
 * **The Commercial Reality (Unfiltered)**:
   * Google deliberately removed the workhorse **Gemini 3.1 Pro** from the Antigravity client to accelerate paid monetization;
   * Users inside Antigravity are left stranded between **Gemini 4 Argon (a notorious "Quota Assassin" with extreme thinking token consumption)** and **Gemini 3.8 Flash (affordable, but repeatedly falls short of 3.1 Pro on multi-step architectural logic)**;
-  * Meanwhile, developers on Google Ultra or Cloud subscriptions have access to **copious, high-volume Google Cloud Jules quotas** that are completely locked out of Antigravity's native IDE workflow!
+  * Meanwhile, developers on Google Ultra subscriptions have access to **copious, high-volume Google Cloud Jules quotas** that are completely locked out of Antigravity's native IDE workflow!
 * **The agy-disciple Arbitrage Advantage**:
   * **Exploit Free/Ultra Cloud Quotas**: Offload heavy implementation tasks to Google Cloud Jules, draining your generous Ultra allowance while **keeping your local Antigravity 4 Argon token balance at zero cost**!
   * **Reclaim True Gemini 3.1 Pro Intelligence**: Jules natively operates on **Gemini 3.1 Pro**, crushing 3.8 Flash in cross-file refactoring, dependency tracking, and nuanced unit test generation.

@@ -15,7 +15,7 @@
 
 传统的 AI 辅助编程通常采用“单单对话”模式。当开发者面对大型特性或复杂重构时，往往会遭遇几大致命瓶颈：
 * **Google 的商业变现与模型断层**：Google 为了商业变现，在 Antigravity 客户端中直接砍掉了兼顾智商与性价比的 **Gemini 3.1 Pro**，只留下了 **Gemini 4 Argon（真正的“额度刺客”，深度思考 Token 极速烧穿配额）** 和 **Gemini 3.8 Flash（轻量廉价，但在复杂代码与重构推理上依然打不过 3.1 Pro）**。本地配额极易被重体力代码编写消耗殆尽；
-* **沉睡的 Ultra / Jules 宝藏无法利用**：许多开发者订阅了 Google Ultra 或拥有 Google Cloud 开发者配额，账户里躺着大量极其充沛的 **Google Cloud Jules 额度**，但在 Antigravity 客户端内却**完全无法直接调用**，造成了巨大的算力闲置；
+* **沉睡的 Jules 宝藏无法利用**：许多开发者订阅了 Google Ultra ，账户里躺着大量极其充沛的 **Google Cloud Jules 额度**，但在 Antigravity 客户端内却**完全无法直接调用**，造成了巨大的算力闲置；
 * **主会话上下文严重污染**：编译日志、单元测试报错和试错过程挤满上下文，迅速导致后续推理智商退化；
 * **源码遭到意外破坏**：单 Agent 直接在原文件上大面积修改，极易导致语法破坏或关键逻辑丢失；
 * **重复踩坑死循环**：缺乏负面知识沉淀，AI 在不同会话中往往反复尝试已被证实不可行的死胡同方案。
@@ -81,7 +81,7 @@ python configure.py --doctor
 * **痛点直击（拒绝含蓄）**：
   * Google 为了追求商业利润，在 Antigravity 客户端中移除了最均衡实用的 **Gemini 3.1 Pro**；
   * 客户端内仅剩 **Gemini 4 Argon（真正的额度刺客，深度思考 Token 极速烧穿账单）** 和 **Gemini 3.8 Flash（廉价但复杂推理依然打不过 3.1 Pro）**；
-  * 与此同时，开通了 Google Ultra 订阅或 Cloud 套餐的用户，账户里拥有**极其充沛的 Google Cloud Jules 专属额度**，却因为 Antigravity 官方闭环限制而**根本无法直接在开发中利用**！
+  * 与此同时，开通了 Google Ultra 订阅的用户，账户里拥有**极其充沛的 Google Cloud Jules 专属额度**，却因为 Antigravity 官方闭环限制而**根本无法直接在开发中利用**！
 * **破局利器（额度套利与算力解放）**：
   * **白嫖/唤醒 Ultra 沉睡额度**：通过 `agy-disciple`，将重体力开发任务外包给 Google Cloud Jules，直接榨干 Ultra 赠送的丰富云端配额，**完全不烧本地 Antigravity 昂贵的 4 Argon Token**！
   * **迎回 Gemini 3.1 Pro 真正智商**：Jules 标配 **Gemini 3.1 Pro**，在跨文件代码重构、架构理解和单元测试上全面碾压 3.8 Flash，代码质量断层领先；
