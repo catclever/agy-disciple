@@ -1,41 +1,47 @@
 ---
 name: dev-manager
-description: "SOP for delegating tasks to LOCAL sub-agents. Use this for standard standalone local development."
+description: "SOP for delegating development tasks to local sub-agents or local Jules cloud workers."
 ---
 # Dev Manager SOP (Local-First Mode)
 
-This skill defines how the Lead Architect (Main Agent) should orchestrate local sub-agents (`dev` and `merger`) for coding tasks. 
+This skill defines how the Lead Architect (Main Agent) orchestrates coding tasks on the local machine. It provides a dual-engine architecture for the development sub-agent.
 
-## Host Boundary & Invocation Standard
-> [!CRITICAL]
-> **Native Subagent Only**: When delegating tasks on the local machine (inside the Antigravity client), you MUST exclusively use the native `invoke_subagent` tool to spawn subagents directly in the IDE conversation tree.
+## Available Dev Sub-Agents
 
-## Available Sub-Agents (Located in `agents/`)
+The Lead Architect can select the appropriate Dev engine depending on task complexity and token budget:
 
-### 1. The `dev` Agent
-- **Role**: Writes code, fixes bugs, and performs sandboxed verification.
-- **Completion Condition**: The `dev` agent is ONLY considered completed AFTER the user has manually tested and explicitly accepted the code changes. Until then, it stays suspended (idle), waiting for you to relay user feedback for further fixes.
-- **Invocation Rules**:
-  - Pass the `Task ID` in the invocation prompt.
-  - Read `IRON_RULES.md`. Extract ONLY the `[Global]` and `[Dev Agent]` sections and append them to the `dev` agent's prompt to prevent context pollution.
-  - **Knowledge Synthesis & Reading Guidance**: Search `kb/knowledge.md` for relevant conventions, schemas, or gotchas. Synthesize them into customized, concrete task requirements (NEVER blindly paste raw markdown documents into the prompt). Explicitly provide the specific paths to the relevant `kb/` documents that the `dev` agent can read for deep context.
-  - Inform the `dev` agent of the files it needs to read. Remind it of the suffix rule (`_task_name`) for draft files.
-  - **Boundary Restriction**: Explicitly instruct the `dev` agent that it is STRICTLY FORBIDDEN from modifying any task cards or project metadata in `tasks/`. All task state updates must be handled by you (the Main Agent).
+### Engine Option A: Native `dev` Agent (`agents/dev.yaml`)
+- **Execution Target**: Local Antigravity IDE conversation tree via `invoke_subagent`.
+- **Model**: Local Antigravity model (Gemini 3.8 Flash or Argon).
+- **Best For**: Rapid iterations, short bug fixes, interactive user review.
+- **Workflow**: Generates draft files (`api_task_001.py`), runs sandboxed unit tests, and hands off to `merger`.
 
-### 2. The `merger` Agent
-- **Role**: Replaces original source files with the development drafts.
-- **Completion Condition**: The `merger` agent is considered completed the moment it successfully finishes backing up and renaming the files. It requires no user verification.
-- **Invocation Rules**:
-  - Invoke ONLY after the `dev` agent has successfully reported its draft files.
-  - Pass the exact mapping of draft files to original files (e.g., "Replace `api.py` with `api_task_001.py`").
-  - Instruct the `merger` agent to backup the original files (e.g., `api.bak.py`) before overwriting.
+### Engine Option B: Local `jules-dev` Agent (`agents/jules-dev.yaml`)
+- **Execution Target**: Google Cloud Jules cloud VM launched via local watchdog:
+  ```bash
+  bash scripts/watchdogs/jules_watchdog.sh -t '<Task_ID>' -r '<owner/repo>' -p '<Prompt>' [--auto-merge]
+  ```
+- **Model & Quota**: **Gemini 3.1 Pro** running on dedicated Jules cloud quota.
+- **Strategic Value (Quota Arbitrage)**:
+  - Antigravity currently only offers expensive models (like Argon) and lightweight models (Gemini 3.8 Flash).
+  - Offloading heavy implementation tasks to Jules leverages **Gemini 3.1 Pro**'s superior reasoning without burning expensive Antigravity tokens!
+- **Deliverable**: Creates a GitHub Pull Request and optionally auto-merges it via `gh pr merge --squash`.
+
+---
+
+## The `merger` Agent (Located in `agents/merger.yaml`)
+- **Role**: Replaces original source files with development drafts after creating `.bak` backups (used when Engine A is active).
+- **Completion Condition**: Completed the moment backup and file rename operations finish.
+
+---
 
 ## Delegation Lifecycle
 
-0. **Prerequisite**: You MUST NOT invoke a `dev` agent unless you have already registered the `Task ID` in `tasks/` (via `kanban-task-manager` MCP or local task card).
-1. **Assign**: Main Agent reads the task and invokes the `dev` agent, passing the `Task ID`.
-2. **Suspend & Review**: The `dev` agent finishes drafting, runs sandboxed verification, and suspends itself (goes idle). The Main Agent reviews the results.
-3. **Merge (Draft)**: The Main Agent invokes the `merger` agent to apply the drafts. Once merged, the `merger` agent is immediately killed.
-4. **User Verification**: The Main Agent asks the user to manually verify the changes. 
-   - *If rework is needed*: Wake up the suspended `dev` agent by sending it a message with the feedback. Repeat from step 2.
-   - *If verified*: The task is complete. Kill the `dev` agent.
+0. **Prerequisite**: Register the task card in `tasks/` (via `kanban-task-manager` MCP or Markdown).
+1. **Engine Selection**:
+   - For light tasks or quick scripts -> Select **Engine A (Native `dev`)**.
+   - For complex features, multi-file refactors, or saving Antigravity tokens -> Select **Engine B (Local `jules-dev`)**.
+2. **Execute & Verify**:
+   - If Engine A: Wait for draft files, invoke `merger`, ask user to verify.
+   - If Engine B: Wait for `/tmp/<Task_ID>.signal`, review PR URL on GitHub, pull changes via `git pull`.
+3. **Completion**: Close the task card and report final status to the user.

@@ -1,40 +1,35 @@
 ---
 name: dev-manager
-description: "SOP for delegating tasks to sub-agents across local and remote server environments."
+description: "SOP for delegating tasks to sub-agents across local, remote server (PVE), and server-side Jules environments."
 ---
 # Dev Manager SOP (Dual-Topology / Server Mode)
 
 This skill defines how the Lead Architect (Main Agent) orchestrates development tasks, routing between local sub-agents and remote server execution depending on the project's target environment.
 
-## Topology Routing
-Before delegating any development task:
-1. **Check Project Environment**:
-   - Inspect `IRON_RULES.md` for `Environment: PVE-Native` or remote compute tags.
-2. **Execution Routing**:
-   - **Local Tasks**: Use native `invoke_subagent` directly within the IDE tree (see Local Delegation below).
-   - **Remote Server Tasks**: Delegate to the remote compute environment using the `pve-dispatch` skill.
+## Topology Routing & Dev Engines
+
+Before delegating any development task, select the execution engine:
+
+### Engine 1: Server-Side Jules Cloud Watchdog (Google Cloud Jules via PVE)
+- **Execution Target**: Dispatched to the remote server via SSH, which runs Jules watchdog in the background:
+  ```bash
+  ssh <REMOTE_HOST> "bash scripts/watchdogs/jules_watchdog.sh -t '<Task_ID>' -r '<owner/repo>' -p '<Prompt>' [--auto-merge]"
+  ```
+- **Model & Quota**: **Gemini 3.1 Pro** running on dedicated Google Cloud Jules quota.
+- **Why Use**: Saves expensive Antigravity tokens, leverages 3.1 Pro's deep reasoning, and executes in the cloud completely immune to local client shutdowns.
+
+### Engine 2: Remote PVE Native Agent (`pve_watchdog.sh`)
+- **Execution Target**: Dedicated Linux/PVE server running `agy --remote-control` inside a persistent Zellij tab.
+- **Best For**: Non-GitHub private projects, heavy local builds, or custom server environments.
+
+### Engine 3: Local Native `dev` Agent (`agents/dev.yaml`)
+- **Execution Target**: Local Antigravity IDE conversation tree via `invoke_subagent`.
+- **Best For**: Quick, interactive code edits reviewed directly by the user.
 
 ---
 
-## Local Delegation (Available Sub-Agents in `agents/`)
-
-### 1. The `dev` Agent
-- **Role**: Writes code, fixes bugs, and performs sandboxed verification.
-- **Completion Condition**: Completed ONLY after user manual testing and explicit acceptance.
-- **Invocation Rules**:
-  - Pass the `Task ID` in the invocation prompt.
-  - Read `IRON_RULES.md` (`## [Global]` and `## [Dev Agent]`).
-  - Synthesize relevant items from `kb/knowledge.md` into concrete requirements.
-  - Remind the agent of the suffix rule (`_task_name`) for draft files.
-  - Restrict the agent from touching task cards in `tasks/`.
-
-### 2. The `merger` Agent
-- **Role**: Replaces original source files with development drafts after backing them up (`.bak`).
-- **Completion Condition**: Completed as soon as backup and rename operations finish.
-
-## Delegation Lifecycle
-0. **Prerequisite**: Task card registered in `tasks/`.
-1. **Assign**: Invoke `dev` subagent with `Task ID`.
-2. **Review Drafts**: Once `dev` finishes drafting, Main Agent reviews changes.
-3. **Merge**: Invoke `merger` subagent to apply drafts. Kill `merger` once verified.
-4. **User Verification**: Ask user to verify. If fixes needed, message the idle `dev` agent. If approved, kill `dev` agent.
+## Delegation Lifecycle (Server Jules Workflow)
+0. **Prerequisite**: Task card logged in `tasks/`.
+1. **Assign**: Lead Architect formats the requirements and invokes `jules_watchdog.sh` on the remote server.
+2. **Monitor**: Watchdog polls `/tmp/<Task_ID>.signal` until PR is created or merged.
+3. **Sync Deliverables**: Once merged, run `git pull` on the local workspace.
