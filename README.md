@@ -14,12 +14,13 @@
 ## 1. 📖 Overview
 
 Standard AI coding assistants operate as monolithic single agents. When faced with complex features or large refactors, developers frequently face critical bottlenecks:
-* **Severe Token Cost & Model Constraints**: In Google Antigravity, developers are largely restricted to either very expensive models (like Gemini 3.1 Argon with heavy thinking token consumption) or lightweight models (Gemini 3.8 Flash). Token quotas drain rapidly.
-* **Context Window Pollution**: Raw compile logs, test stack traces, and trial-and-error attempts flood the main conversation context.
-* **Source Code Corruption**: Agents directly mutate production source files, risking broken working trees and hallucinated deletions.
+* **Google's Monetization Trap & The Model Void**: In a transparent push for commercial monetization, Google removed the sweet-spot **Gemini 3.1 Pro** from the Antigravity client. Developers are left stranded between **Gemini 4 Argon (a notorious "Quota Assassin" whose deep-thinking tokens devour monthly tier limits in minutes)** and **Gemini 3.8 Flash (lightweight and cheap, but still no match for 3.1 Pro on complex multi-file reasoning and refactoring)**. Local quotas drain at alarming speeds;
+* **The Untapped Ultra / Jules Treasure**: Many developers subscribe to Google Ultra or possess Google Cloud quotas with abundant, rich **Google Cloud Jules allowances**, but Antigravity provides no native way to exploit this quota during everyday IDE development—leaving premium compute sitting idle;
+* **Context Window Pollution**: Raw compile logs, test stack traces, and trial-and-error attempts flood the main conversation context;
+* **Source Code Corruption**: Agents directly mutate production source files, risking broken working trees and hallucinated deletions;
 * **Repeated Anti-Patterns**: Without negative knowledge tracking, agents repeatedly suggest dead-end solutions previously proven broken.
 
-`agy-disciple` (**Antigravity Disciple**) introduces a **hierarchical multi-agent engineering workflow**. It positions the local agent as a **Lead Architect**, offloading heavy coding to specialized sub-agents—including **Google Cloud Jules running Gemini 3.1 Pro on independent cloud quotas**—guarded by draft suffix isolation, double knowledge audits, and data-driven Kanban boards.
+`agy-disciple` (**Antigravity Disciple**) breaks through this monetization wall with a **hierarchical multi-agent engineering workflow**. It positions the local session as a **Lead Architect**, seamlessly offloading heavy implementation to remote **Google Cloud Jules running Gemini 3.1 Pro on independent cloud quotas**—fully exploiting your rich Ultra Jules allowance without burning expensive local 4 Argon tokens—guarded by draft suffix isolation, double knowledge audits, and data-driven Kanban boards.
 
 ---
 
@@ -78,14 +79,17 @@ python configure.py --doctor
 ## 3. ⚡ Core Capabilities (What agy-disciple Delivers)
 
 ### ★ 1. Jules Remote Dev & Quota Arbitrage (Gemini 3.1 Pro Empowerment)
-* **The Token Cost Bottleneck**: In Google Antigravity today, users must choose between **Gemini 3.1 Argon** (high token burn with deep thinking) and **Gemini 3.8 Flash** (fast but less capable on complex logic).
-* **The Jules Arbitrage Advantage**:
-  * **Dedicated Quotas**: Google Cloud Jules operates on independent cloud quotas, completely bypassing local Antigravity token limits!
-  * **Gemini 3.1 Pro Reasoning**: Jules is powered by **Gemini 3.1 Pro**, offering deep reasoning and comprehensive codebase understanding without consuming your precious Antigravity token budget.
-  * **Dual Jules Topologies**:
+* **The Commercial Reality (Unfiltered)**:
+  * Google deliberately removed the workhorse **Gemini 3.1 Pro** from the Antigravity client to accelerate paid monetization;
+  * Users inside Antigravity are left stranded between **Gemini 4 Argon (a notorious "Quota Assassin" with extreme thinking token consumption)** and **Gemini 3.8 Flash (affordable, but repeatedly falls short of 3.1 Pro on multi-step architectural logic)**;
+  * Meanwhile, developers on Google Ultra or Cloud subscriptions have access to **copious, high-volume Google Cloud Jules quotas** that are completely locked out of Antigravity's native IDE workflow!
+* **The agy-disciple Arbitrage Advantage**:
+  * **Exploit Free/Ultra Cloud Quotas**: Offload heavy implementation tasks to Google Cloud Jules, draining your generous Ultra allowance while **keeping your local Antigravity 4 Argon token balance at zero cost**!
+  * **Reclaim True Gemini 3.1 Pro Intelligence**: Jules natively operates on **Gemini 3.1 Pro**, crushing 3.8 Flash in cross-file refactoring, dependency tracking, and nuanced unit test generation.
+  * **Dual Jules Topologies (Your Choice)**:
     * *Local-First Mode*: Runs Jules locally via `scripts/watchdogs/jules_watchdog.sh` using your local `$JULES_API_KEY`.
-    * *Server Mode (PVE)*: Dispatches Jules to run on your remote PVE server as an unattended 24/7 watchdog.
-  * **Automated Cloud PRs**: Jules creates clean Pull Requests on GitHub and supports automatic squash merges via `gh pr merge --squash`.
+    * *Server Mode (PVE)*: Dispatches Jules to run on your remote PVE server as an unattended 24/7 background watchdog.
+  * **Automated Cloud PRs**: Jules executes inside cloud VMs and submits clean Pull Requests directly to GitHub, supporting automatic squash merging via `gh pr merge --squash`.
 
 ### 2. Draft Suffix Isolation (Draft Suffix Rule)
 When the local `dev` agent modifies code, it is strictly forbidden from touching original files. It generates task-suffixed drafts (e.g. `api_task_auth_001.py`):

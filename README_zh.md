@@ -14,12 +14,13 @@
 ## 1. 📖 项目概述 (Overview)
 
 传统的 AI 辅助编程通常采用“单单对话”模式。当开发者面对大型特性或复杂重构时，往往会遭遇几大致命瓶颈：
-* **Token 消耗剧烈与模型选择受限**：当前 Google Antigravity 客户端中，开发者主要面对的是**极其昂贵的深度思考模型（如 Gemini 3.1 Argon，Token 消耗巨大）**或**轻量级模型（Gemini 3.8 Flash，复杂逻辑推理能力受限）**。本地配额极易被重体力代码编写消耗殆尽；
+* **Google 的商业变现与模型断层**：Google 为了商业变现，在 Antigravity 客户端中直接砍掉了兼顾智商与性价比的 **Gemini 3.1 Pro**，只留下了 **Gemini 4 Argon（真正的“额度刺客”，深度思考 Token 极速烧穿配额）** 和 **Gemini 3.8 Flash（轻量廉价，但在复杂代码与重构推理上依然打不过 3.1 Pro）**。本地配额极易被重体力代码编写消耗殆尽；
+* **沉睡的 Ultra / Jules 宝藏无法利用**：许多开发者订阅了 Google Ultra 或拥有 Google Cloud 开发者配额，账户里躺着大量极其充沛的 **Google Cloud Jules 额度**，但在 Antigravity 客户端内却**完全无法直接调用**，造成了巨大的算力闲置；
 * **主会话上下文严重污染**：编译日志、单元测试报错和试错过程挤满上下文，迅速导致后续推理智商退化；
 * **源码遭到意外破坏**：单 Agent 直接在原文件上大面积修改，极易导致语法破坏或关键逻辑丢失；
 * **重复踩坑死循环**：缺乏负面知识沉淀，AI 在不同会话中往往反复尝试已被证实不可行的死胡同方案。
 
-`agy-disciple`（**Antigravity 门徒**）通过**层级化多智能体工程工作流**破局：将本地会话塑造为沉稳调度全局的**主架构师**，将具体重体力代码开发分派给专业研发智能体——特别是**能够利用独立云端配额与 Gemini 3.1 Pro 强推理能力的 Google Cloud Jules**，并由草稿隔离法、双重知识库审查与数据看板提供全流程防错保护。
+`agy-disciple`（**Antigravity 门徒**）通过**层级化多智能体工程工作流**破局：将本地会话塑造为沉稳调度全局的**主架构师**，直接打通这堵商业高墙——把具体重体力代码开发无缝分派给搭载了 **Gemini 3.1 Pro** 的 Google Cloud Jules，**充分利用 Ultra 订阅中充沛的 Jules 专属额度**，完全不烧本地 Antigravity 宝贵的 Token，并由草稿隔离法、双重知识库审查与数据看板提供全流程防错保护。
 
 ---
 
@@ -77,11 +78,14 @@ python configure.py --doctor
 ## 3. ⚡ 核心能力 (What agy-disciple Delivers)
 
 ### ★ 1. 核心王牌：Jules 远程研发与额度套利 (Gemini 3.1 Pro 赋能)
-* **痛点直击**：当前 Antigravity 仅提供昂贵的 **Gemini 3.1 Argon**（深度思考 Token 成本极高）和轻量级的 **Gemini 3.8 Flash**（推理能力有限），做复杂开发极易迅速烧完配额；
-* **破局利器**：
-  * **独立云端配额（额度套利）**：Google Cloud Jules 拥有独立的云端额度，**完全不烧本地 Antigravity 宝贵的 Token 配额**！
-  * **Gemini 3.1 Pro 强悍推理**：Jules 标配 **Gemini 3.1 Pro** 模型，既规避了 Argon 的高昂成本，又在代码重构与跨文件推理上大幅超越 3.8 Flash；
-  * **两种部署拓扑**：
+* **痛点直击（拒绝含蓄）**：
+  * Google 为了追求商业利润，在 Antigravity 客户端中移除了最均衡实用的 **Gemini 3.1 Pro**；
+  * 客户端内仅剩 **Gemini 4 Argon（真正的额度刺客，深度思考 Token 极速烧穿账单）** 和 **Gemini 3.8 Flash（廉价但复杂推理依然打不过 3.1 Pro）**；
+  * 与此同时，开通了 Google Ultra 订阅或 Cloud 套餐的用户，账户里拥有**极其充沛的 Google Cloud Jules 专属额度**，却因为 Antigravity 官方闭环限制而**根本无法直接在开发中利用**！
+* **破局利器（额度套利与算力解放）**：
+  * **白嫖/唤醒 Ultra 沉睡额度**：通过 `agy-disciple`，将重体力开发任务外包给 Google Cloud Jules，直接榨干 Ultra 赠送的丰富云端配额，**完全不烧本地 Antigravity 昂贵的 4 Argon Token**！
+  * **迎回 Gemini 3.1 Pro 真正智商**：Jules 标配 **Gemini 3.1 Pro**，在跨文件代码重构、架构理解和单元测试上全面碾压 3.8 Flash，代码质量断层领先；
+  * **双部署形态（灵活选择）**：
     * *单机本地模式*：直接在本地调用 `scripts/watchdogs/jules_watchdog.sh`，读取本地 API Key 并发给 Jules；
     * *服务器 PVE 模式*：通过 SSH 挂在远端 PVE 服务器后台，作为 24 小时不间断的夜班看门狗。
   * **自动化云端 PR**：Jules 在云端虚拟机中自检代码并直接在 GitHub 上创建 Pull Request，支持配合 `gh pr merge --squash` 实现全自动合并。
