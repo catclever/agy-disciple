@@ -1,142 +1,121 @@
 # agy-disciple 🚀
 
-> **Production-grade Multi-Agent Development Team Plugin for Google Antigravity (AGY)**  
-> 面向 Google Antigravity 的工业级多智能体协同研发团队插件
+[English](README.md) | [简体中文](README_zh.md)
 
-`agy-disciple`（Antigravity 门徒）将原本单打独斗的 AI 助手转变为一支**分工明确、纪律严明、自闭环的专业研发小队**。通过「主架构师 + 研发 + 合并 + 运维」的分权架构，彻底解决 AI 编码过程中的上下文污染、代码误覆盖、以及盲目试错问题。
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Antigravity](https://img.shields.io/badge/Antigravity-Plugin-purple.svg)](https://antigravity.google)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com)
 
----
-
-## ✨ 核心设计哲学 (Core Philosophy)
-
-### 1. 角色分工架构 (Hierarchical Orchestration)
-* **主架构师 (Main Agent / Lead Architect)**：统揽全局，负责需求拆解、方案确认、双重知识库审查、任务看板管理与 DoD 门禁验收。
-* **研发智能体 (`dev` Agent)**：专门负责重体力编码与沙盒单元自测。严格遵守**只读原文件原则**。
-* **合并智能体 (`merger` Agent)**：专司草稿替换与无损备份，不参与业务逻辑。
-* **运维智能体 (`ops` Agent)**：专司高危、非幂等、真实环境部署与运行脚本，强制记录命令字典。
-
-### 2. 草稿后缀隔离法 (Draft Suffix Rule)
-`dev` 智能体在修改代码时，被严格禁止直接修改原始源码文件。所有改动必须创建带任务后缀的独立草稿文件（如 `api_task_auth_001.py`）：
-* **保留原生语法支持**：文件扩展名未变，IDE 语法高亮、Linting、类型检查完好无损；
-* **零污染零破坏**：只有在沙盒自测通过、主架构师确认后，才由 `merger` 执行原子化覆盖与 `.bak` 备份；
-* **极速回滚**：任何缺陷均可无损还原。
-
-### 3. 双重知识库审查与防坑公墓 (Double Knowledge Audit & Graveyard)
-* **Active Knowledge (`kb/knowledge.md`)**：仅收录已拍板生效的硬核架构规范、数据 Schema、通信协议与环境配置。
-* **防坑公墓 (`kb/graveyard/grave.md`)**：专门沉淀**负面知识**（试错失败记录、死胡同、反面教材）。主架构师在向用户呈现方案前，强制运行公墓雷达扫描，绝对不重蹈覆辙。
-
-### 4. 任务引擎平滑降级 (Adaptive Kanban Engine)
-* **MCP 优先**：如果当前环境已接入 `kanban-task-manager` MCP 工具，享受强校验看板状态与主会话可点击跳转 (`conversation://<uuid>`)；
-* **原生降级**：若未配置 MCP，自动平滑降级为读写本地 Markdown 任务卡片，开箱即用零门槛。
+> **A Production-Grade Multi-Agent Development Team Plugin for Google Antigravity (AGY)**  
+> Transform single-threaded agent interactions into a disciplined, hierarchical engineering squad: Lead Architect, Dev, Merger, and Ops.
 
 ---
 
-## 🎛️ 双模自适应架构 (Dual-Mode System)
+## 📖 Overview
 
-`agy-disciple` 同时完美支持**单机本地开发者**与**拥有专属服务器/PVE 的重度高阶玩家**：
+Standard AI coding assistants operate as monolithic single agents. When faced with non-trivial refactors or complex features, monolithic agents often suffer from:
+1. **Context Pollution**: Diagnostic outputs, compiler errors, and failed attempts overwhelm the conversation context.
+2. **Accidental File Overwrites**: Agents directly edit production source files, risking broken working trees and hallucinated deletions.
+3. **Repeated Anti-Patterns**: Without negative knowledge tracking, agents repeatedly attempt solutions that already failed in prior sessions.
 
-| 维度 | 默认预设 (Standalone / In-Repo) | 进阶服务器预设 (Server-Centralized / PVE) |
+`agy-disciple` (**Antigravity Disciple**) introduces a **hierarchical multi-agent engineering workflow**. It divides development responsibilities across specialized agents governed by strict isolation boundaries, draft suffix protocols, and double knowledge audits.
+
+---
+
+## 🏛️ Core Architecture
+
+```
+                       ┌────────────────────────────────┐
+                       │     Lead Architect (Main)      │
+                       │  • Task Breakdown & Confirmation│
+                       │  • Double KB Audit & Graveyard │
+                       │  • Kanban Board & DoD Gate     │
+                       └───────────────┬────────────────┘
+                                       │
+         ┌─────────────────────────────┼─────────────────────────────┐
+         ▼                             ▼                             ▼
+┌─────────────────┐           ┌─────────────────┐           ┌─────────────────┐
+│    dev Agent    │           │  merger Agent   │           │    ops Agent    │
+│ • Sandboxed Dev │           │ • Atomic Backup │           │ • Non-Idempotent│
+│ • Draft Suffix  │──drafts──►│ • Safe Renaming │           │ • Command Dict  │
+│ • Self-Testing  │           │ • Zero Logic    │           │ • Host Scripts  │
+└─────────────────┘           └─────────────────┘           └─────────────────┘
+```
+
+### 1. The Squad
+* **Lead Architect (Main Agent)**: High-level system design, requirement decomposition, knowledge synthesis, user alignment, and Definition-of-Done (DoD) verification.
+* **`dev` Sub-Agent ([agents/dev.yaml](agents/dev.yaml))**: Sandboxed implementation and unit testing. Strictly forbidden from modifying original source files directly.
+* **`merger` Sub-Agent ([agents/merger.yaml](agents/merger.yaml))**: Replaces production files with verified drafts after creating atomic `.bak` backups. Contains zero business logic.
+* **`ops` Sub-Agent ([agents/ops.yaml](agents/ops.yaml))**: Safely executes real-world, high-cost operational scripts (deployments, data migrations, packaging) with command dictionary verification.
+
+---
+
+## ⚡ Key Engineering Principles
+
+### 1. Draft Suffix Isolation (Suffix Rule)
+Instead of modifying `api.py` directly, `dev` generates draft files with task suffixes before the extension (e.g. `api_task_auth_001.py`):
+* **Full IDE Tooling**: Preserves native syntax highlighting, linting, and type checking in the IDE.
+* **Zero Disruption**: The original codebase remains completely functional and uncorrupted until tests pass.
+* **Atomic Rollback**: If a proposal is rejected, discard the draft with zero collateral damage.
+
+### 2. Double Knowledge Base Audit & The Graveyard
+* **Active Knowledge (`kb/knowledge.md`)**: Houses finalized technical truths (DB schemas, API contracts, environment setups).
+* **Anti-Pattern Graveyard (`kb/graveyard/grave.md`)**: Systematically tracks **negative knowledge** (failed approaches, dead ends, root cause post-mortems).
+* **Radar Scan**: Before presenting any plan to the user, the Lead Architect performs an automatic double audit against active knowledge and scans the Graveyard to ensure historically failed solutions are never suggested again.
+
+### 3. Adaptive Kanban Engine
+Task tracking automatically detects environment capabilities:
+* **MCP Mode**: When the bundled `kanban-task-manager` MCP server is active, enjoys strict schema enforcement and clickable session deep-links (`conversation://<uuid>`).
+* **Native Fallback (Zero Config)**: Gracefully falls back to managing standard YAML frontmatter Markdown cards in `tasks/*.md` without requiring external MCP services.
+
+---
+
+## 🎛️ Dual-Mode Topology (Local vs. Server)
+
+`agy-disciple` seamlessly accommodates solo local developers and power users with remote servers:
+
+| Feature | Standalone / In-Repo (Default) | Server-Centralized / PVE |
 | :--- | :--- | :--- |
-| **适用人群** | 通用开源用户、单机开发、团队 Git 协同 | 拥有 PVE/Linux 服务器、追求源码绝对纯净的用户 |
-| **元数据存储** | 存放于当前项目仓库内 (`./kb`, `./tasks`, `./docs`) | 集中外置于用户家目录 (`~/.gemini/Projects/<name>`) |
-| **计算拓扑** | 纯本地单机 Sub-agents 协作 | 本地主控 + 远端 PVE 服务器（SSH / Zellij / Mutagen） |
-| **夜间模式** | 本地无人值守 `/goal` 循环接力 | 远端终端复用器 (Zellij) 离线全自动研发 |
+| **Target Audience** | Individual developers, team Git repositories | Power users with PVE/Linux build servers |
+| **Metadata Location** | Inside project repo (`./kb`, `./tasks`, `./docs`) | Centralized in `~/.gemini/Projects/<name>` |
+| **Compute Topology** | Native local IDE sub-agents | Local Lead Architect + Remote SSH/Zellij agents |
+| **Night Shift** | Local autonomous `/goal` execution loop | Remote unattended multiplexer pipeline |
 
-### 一键模式切换 (Mode Switcher)
+### Instant Mode Switching
 
-项目内置了 `configure.py`，支持随时无损切换：
+Switch presets in one command via `configure.py`:
 
 ```bash
-# 查看当前生效的模式
+# Check current active configuration
 python configure.py --status
 
-# 切换为默认：单机模式 + 仓库内管理（适合新人和团队项目）
+# Apply default standalone / in-repo preset
 python configure.py --preset=standalone
 
-# 切换为进阶：远端服务器/PVE + 集中式外置元数据
+# Apply server-centralized / PVE preset
 python configure.py --preset=server-centralized
 
-# 也支持单项精细调整：
-python configure.py --meta=in-repo          # 仅切换元数据模式: in-repo 或 centralized
-python configure.py --topology=server       # 仅切换计算环境模式: local 或 server
+# Granular adjustments
+python configure.py --meta=in-repo       # in-repo | centralized
+python configure.py --topology=local     # local | server
 ```
 
 ---
 
-## 📂 项目结构全览 (Repository Structure)
+## 🚀 Quick Start
 
-```text
-agy-disciple/
-├── plugin.json                 # Antigravity 插件清单
-├── README.md                   # 详细使用指南
-├── LICENSE                     # MIT 开源许可
-├── configure.py                # 模式与变体一键切换工具
-│
-├── agents/                     # 通用 Sub-Agents 定义
-│   ├── dev.yaml                # 研发 Agent (草稿隔离、沙盒验证)
-│   ├── merger.yaml             # 合并 Agent (备份与替换)
-│   └── ops.yaml                # 运维 Agent (安全操作、命令字典)
-│
-├── skills/                     # 核心与进阶技能库
-│   ├── task-breakdown/         # [核心] 需求拆解、知识库审查与两轨确认
-│   │   └── SKILL.md
-│   ├── dev-manager/            # [核心] 研发流程调度 (支持 local / server 切换)
-│   │   ├── SKILL.md            # 当前生效
-│   │   ├── SKILL.local.md      # 本地单机调度
-│   │   └── SKILL.server.md     # 远端服务器协同调度
-│   ├── project-manager/        # [核心] 项目生命周期与任务看板
-│   │   ├── SKILL.md            # 当前生效
-│   │   ├── SKILL.in-repo.md    # 仓库内管理
-│   │   └── SKILL.centralized.md# 集中式外置管理
-│   ├── extract-knowledge/      # [核心] 知识沉淀与防坑公墓 (Graveyard)
-│   │   ├── SKILL.md            # 当前生效
-│   │   ├── SKILL.in-repo.md
-│   │   └── SKILL.centralized.md
-│   ├── ops-manager/            # [核心] 运维与高成本脚本执行
-│   │   └── SKILL.md
-│   ├── test-environment/      # [核心] 测试环境与开发服务管理
-│   │   ├── SKILL.md
-│   │   ├── SKILL.local.md
-│   │   └── SKILL.server.md
-│   ├── night-shift/            # [进阶] 离线夜班自主接力
-│   │   ├── SKILL.md
-│   │   ├── SKILL.local.md
-│   │   └── SKILL.server.md
-│   ├── pve-dispatch/           # [进阶] 远端服务器与多机任务分发
-│   │   └── SKILL.md
-│   └── setup-mutagen/          # [进阶] 智能语言检测与 Mutagen 双向同步
-│       ├── SKILL.md
-│       └── scripts/setup_mutagen.py
-│
-├── mcp/                        # 配套可选 MCP 工具
-│   └── kanban-task-manager/
-│       ├── server.py           # 纯 Python FastMCP 任务看板服务
-│       ├── mcp_config.example.json
-│       └── README.md           # 30秒安装指引
-│
-└── scripts/
-    └── meta_resolver.py        # 通用跨平台项目元数据寻址工具
-```
+### Installation
 
----
-
-## 🚀 安装与上手 (Quickstart)
-
-### 方式一：作为全局插件安装 (Global Plugin)
-
-将本仓库克隆至您的 Antigravity 全局插件目录：
-
+#### Method 1: Global Plugin (Recommended)
+Clone into your Antigravity global plugin directory:
 ```bash
 cd ~/.gemini/config/plugins/
 git clone https://github.com/<your-username>/agy-disciple.git
 ```
+Reload or restart Antigravity. The plugin will be automatically discovered.
 
-重启或刷新 Antigravity，即可自动发现并加载 `agy-disciple` 团队套件。
-
-### 方式二：作为项目专属插件引入 (Workspace Plugin)
-
-在具体项目根目录下创建 `.agents/plugins/` 并克隆：
-
+#### Method 2: Project-Specific Plugin
+Clone into the project's `.agents/plugins/` directory:
 ```bash
 mkdir -p .agents/plugins
 cd .agents/plugins
@@ -145,12 +124,18 @@ git clone https://github.com/<your-username>/agy-disciple.git
 
 ---
 
-## 🛠️ 可选配置：启用 Kanban MCP 看板
+## 📦 Optional: Kanban Task Manager MCP
 
-插件自带了开箱即用的轻量级任务看板服务端 [mcp/kanban-task-manager](mcp/kanban-task-manager/README.md)。
+`agy-disciple` includes a self-contained, lightweight Kanban task manager MCP server built with FastMCP.
 
-只需在 Antigravity 界面（**Additional Options ... > MCP Servers**）中添加，或在全局 `~/.gemini/config/mcp_config.json` 注册：
+### Setup in Antigravity
+1. Open Antigravity **Additional Options (...)** > **MCP Servers**.
+2. Add a new Stdio server:
+   - **Name**: `kanban-task-manager`
+   - **Command**: `uv`
+   - **Args**: `run`, `/absolute/path/to/agy-disciple/mcp/kanban-task-manager/server.py`
 
+Or declare it in `~/.gemini/config/mcp_config.json`:
 ```json
 {
   "mcpServers": {
@@ -165,8 +150,45 @@ git clone https://github.com/<your-username>/agy-disciple.git
 }
 ```
 
+See [mcp/kanban-task-manager/README.md](mcp/kanban-task-manager/README.md) for details.
+
 ---
 
-## 📜 许可证 (License)
+## 📁 Repository Structure
 
-本项目采用 [MIT License](LICENSE) 许可证。
+```text
+agy-disciple/
+├── plugin.json                 # Antigravity plugin manifest
+├── README.md                   # English documentation
+├── README_zh.md                # 简体中文文档
+├── LICENSE                     # MIT License
+├── configure.py                # Preset and mode switcher
+│
+├── agents/                     # Specialized Sub-Agent definitions
+│   ├── dev.yaml                # Dev Agent (draft suffix & sandboxed tests)
+│   ├── merger.yaml             # Merger Agent (safe backup & file swap)
+│   └── ops.yaml                # Ops Agent (script safety & command logging)
+│
+├── skills/                     # Modular skills library
+│   ├── task-breakdown/         # Task decomposition & two-track confirmation
+│   ├── dev-manager/            # Development lifecycle orchestration
+│   ├── project-manager/        # Project metadata & task boards
+│   ├── extract-knowledge/      # Knowledge extraction & Graveyard radar
+│   ├── ops-manager/            # Operational script execution
+│   ├── test-environment/      # Test servers and preview management
+│   ├── night-shift/            # Autonomous unattended task handoff
+│   ├── pve-dispatch/           # Remote SSH task dispatch
+│   └── setup-mutagen/          # Smart language detection & Mutagen sync
+│
+├── mcp/                        # Bundled MCP server
+│   └── kanban-task-manager/    # Standalone task management MCP server
+│
+└── scripts/
+    └── meta_resolver.py        # Centralized metadata path resolver
+```
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
