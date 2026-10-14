@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "kanban-task-manager": {
+      "command": "uv",
+      "args": [
+        "run",
+        "${workspaceFolder}/mcp/kanban-task-manager/server.py"
+      ],
+      "env": {
+        "PROJECTS_ROOT": ""
+      }
+    }
+  }
+}

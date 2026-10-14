@@ -1,0 +1,6 @@
+{
+  "name": "agy-disciple",
+  "description": "Multi-agent development team workflow for Antigravity, featuring hierarchical Lead Architect orchestration, dev/merger/ops sub-agents, draft suffix isolation, double knowledge verification, and optional remote server scaling.",
+  "version": "1.0.0",
+  "license": "MIT"
+}
