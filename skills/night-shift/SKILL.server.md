@@ -29,7 +29,7 @@ Compile pending tasks from `tasks/` into an automated sequential pipeline on the
 ```bash
 ssh <REMOTE_HOST> "nohup bash -c '
   for task in <TASK_LIST>; do
-    bash scripts/watchdog.sh -t \"\$task\" -r \"<owner/repo>\" -p \"<Prompt>\" --auto-merge
+    bash scripts/watchdogs/jules_watchdog.sh -t \"\$task\" -r \"<owner/repo>\" -p \"<Prompt>\" --auto-merge
     if [ \$(cat /tmp/\${task}.signal | grep -c \"DONE\") -eq 0 ]; then
       echo \"Task \$task failed, stopping pipeline.\"
       break

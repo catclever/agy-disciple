@@ -70,91 +70,125 @@
 
 ---
 
-## 🎛️ 双模自适应架构 (Local vs. Server)
+## 🚦 快速上手：双工作流模式与环境指引
 
-`agy-disciple` 同时适配**单机轻量开发**与**拥有专属服务器/PVE 的重度极客**：
-
-| 核心特性 | 单机默认预设 (Standalone / In-Repo) | 进阶服务器预设 (Server-Centralized / PVE) |
-| :--- | :--- | :--- |
-| **适用人群** | 通用开源用户、单机开发、团队 Git 协同 | 拥有专属 PVE/Linux 构建服务器、追求代码树绝对纯净的用户 |
-| **元数据存储** | 存放于当前项目仓库内 (`./kb`, `./tasks`, `./docs`) | 集中外置于用户家目录 (`~/.gemini/Projects/<name>`) |
-| **计算拓扑** | 本地 IDE 内部的原生 Sub-agents 协同 | 本地主架构师 + 远程 SSH / Zellij 多智能体调度 |
-| **夜间自主接力**| 本地基于原生 `/goal` 指令的无人值守循环 | 远端终端复用器 (Zellij) 狂暴离线自动化研发 |
-
-### 秒级一键模式切换
-
-通过项目内置的 `configure.py`，随时无损切换工作流模式：
-
+在开始前，可先运行内置的环境诊断体检：
 ```bash
-# 查看当前激活的各技能模式
-python configure.py --status
-
-# 应用默认的单机/仓库内模式（适合绝大多数项目）
-python configure.py --preset=standalone
-
-# 应用服务器/集中式模式（适合 PVE 用户）
-python configure.py --preset=server-centralized
-
-# 亦可进行单项微调：
-python configure.py --meta=in-repo          # in-repo 或 centralized
-python configure.py --topology=local        # local 或 server
+python configure.py --doctor
 ```
 
----
+### 模式一：本地单机模式 (Standalone / Local-First) —— 默认推荐
+**适用对象**：在本地 Antigravity IDE 客户端中直接开发的大多数个人与团队。
 
-## 🚀 快速开始
+#### 1. 前置依赖
+* **Git** (`git`)
+* **Python** (>= 3.8)
+* *无需安装任何其他 CLI 命令行工具或云服务器！*
 
-### 插件安装
-
-#### 方式一：作为全局插件安装（推荐）
-将本仓库克隆至您的 Antigravity 全局插件目录：
+#### 2. 安装插件
+克隆到您的全局插件目录：
 ```bash
 cd ~/.gemini/config/plugins/
 git clone https://github.com/<your-username>/agy-disciple.git
 ```
-重启或刷新 Antigravity 客户端，插件将自动完成发现与加载。
+*(或克隆到具体项目的 `.agents/plugins/agy-disciple` 作为项目专属插件)*。
 
-#### 方式二：作为项目专属插件引入
-将仓库克隆至具体项目的 `.agents/plugins/` 目录：
+#### 3. 开始使用
+1. 在 Antigravity IDE 中打开您的项目代码；
+2. 确认当前为单机模式预设：
+   ```bash
+   python configure.py --preset=standalone
+   ```
+3. 在对话框中自然交互：
+   * *“帮我拆解这个登录功能”*（自动触发 `task-breakdown`，派发 `dev` 编写草稿并验证）；
+   * *“沉淀我们关于数据库选型的决定”*（自动触发 `extract-knowledge` 并落盘）；
+   * *“我下班了”*（触发基于本地 `/goal` 提示词接力的无人值守夜班）。
+
+---
+
+### 模式二：远端服务器 (PVE) 与 Jules 云端自主模式
+**适用对象**：拥有独立 Linux/PVE 构建服务器的高阶用户，或希望借助 Google Cloud Jules 实现离线自动提 PR 的自动化团队。
+
+#### 1. 前置依赖与工具安装
+* **远端服务器 (PVE / 云主机)**：
+  - **Antigravity CLI (`agy`)**：必须在远端服务器上安装并认证命令行版本（安装指引见 [Antigravity CLI 文档](https://antigravity.google/docs/cli)）。
+  - **SSH 配置**：在本地 `~/.ssh/config` 中配置好别名（如 `Host my-pve`），确保免密连接。
+  - **Zellij 终端复用器**：在远端服务器安装（`cargo install zellij` 或系统包管理器），用于维持夜班后台会话。
+* **Google Cloud Jules (用于 GitHub 项目离线自动化流水线)**：
+  - 配置 API 密钥：`export JULES_API_KEY="AIzaSy..."`（或安装并登录 `jules` CLI）。
+  - **GitHub CLI (`gh`)**：如需开启 PR 自动 Squash 合并（`--auto-merge`），需安装并完成 `gh auth login`。
+* **Mutagen (可选)**：
+  - 本地运行 `brew install mutagen-io/mutagen/mutagen`，用于本地与远端代码的双向亚秒级实时同步。
+
+#### 2. 激活服务器预设
+在插件根目录下运行：
 ```bash
-mkdir -p .agents/plugins
-cd .agents/plugins
-git clone https://github.com/<your-username>/agy-disciple.git
+python configure.py --preset=server-centralized
+```
+
+#### 3. 运行看门狗脚本 (Watchdogs)
+本项目在 `scripts/watchdogs/` 下开源了两个工业级看门狗脚本：
+
+##### 看门狗 A：远端 PVE 服务器调度 (`pve_watchdog.sh`)
+通过 SSH 将任务分发至 PVE 服务器，利用后台守护进程或 Zellij 维持运行，并监听完成信号：
+```bash
+bash scripts/watchdogs/pve_watchdog.sh \
+  -t auth_001 \
+  -a dev \
+  -d /root/Projects/my-app \
+  -p "实现基于 Redis 的令牌黑名单" \
+  -h my-pve
+```
+
+##### 看门狗 B：Google Jules 云端自动化调度 (`jules_watchdog.sh`)
+直接调用 Google Cloud Jules 云端 VM 编写代码，捕获生成的 PR，并在测试通过后自动合并：
+```bash
+bash scripts/watchdogs/jules_watchdog.sh \
+  -t auth_001 \
+  -r "owner/repo" \
+  -b "main" \
+  -p "修复认证路由里的并发边界错误" \
+  --auto-merge
 ```
 
 ---
 
-## 📦 可选扩展：启用任务看板 MCP 服务
+## 🧭 MCP 服务与脚本放置规范指南
 
-本插件附带了一个使用 FastMCP 编写的独立轻量级任务看板服务端。
+在 Antigravity 体系中，清晰理解各项资产的物理放置位置至关重要：
 
-### 在 Antigravity 中添加
-1. 打开 Antigravity 界面点击 **Additional Options (...)** > **MCP Servers**。
-2. 添加一个新的 Stdio 服务：
-   - **Name**: `kanban-task-manager`
-   - **Command**: `uv`
-   - **Args**: `run`, `/absolute/path/to/agy-disciple/mcp/kanban-task-manager/server.py`
-
-或者直接写入全局配置文件 `~/.gemini/config/mcp_config.json`：
-```json
-{
-  "mcpServers": {
-    "kanban-task-manager": {
-      "command": "uv",
-      "args": [
-        "run",
-        "/absolute/path/to/agy-disciple/mcp/kanban-task-manager/server.py"
-      ]
+### 1. MCP 看板服务放哪里？
+* **仓库内源码**：自带的 FastMCP 看板服务源码位于 [mcp/kanban-task-manager/server.py](mcp/kanban-task-manager/server.py)。
+* **全局注册**：若想让它对 Antigravity 上的所有项目生效，将其注册在全局配置文件 `~/.gemini/config/mcp_config.json` 中：
+  ```json
+  {
+    "mcpServers": {
+      "kanban-task-manager": {
+        "command": "uv",
+        "args": [
+          "run",
+          "/绝对路径/agy-disciple/mcp/kanban-task-manager/server.py"
+        ]
+      }
     }
   }
-}
-```
+  ```
+* **界面添加方式**：亦可在 Antigravity IDE 右上角 **... (More) > MCP Servers > Add Server**，填入名称与上述执行命令即可。
 
-更多参数说明详见 [mcp/kanban-task-manager/README.md](mcp/kanban-task-manager/README.md)。
+### 2. 自定义脚本放哪里？
+* **项目内脚本**：所有看门狗与调度工具均保存在仓库的 `scripts/` 目录下：
+  - `scripts/watchdogs/`：远端 PVE 与 Google Jules 看门狗脚本。
+  - `scripts/meta_resolver.py`：集中式元数据路径寻址器。
+* **全局快捷调用建议（可选）**：如果希望在任意终端路径下直接调用看门狗，建议将它们软链接至全局配置目录：
+  ```bash
+  mkdir -p ~/.gemini/config/scripts
+  ln -sf $(pwd)/scripts/watchdogs/pve_watchdog.sh ~/.gemini/config/scripts/
+  ln -sf $(pwd)/scripts/watchdogs/jules_watchdog.sh ~/.gemini/config/scripts/
+  ```
 
 ---
 
-## 📁 项目文件树
+## 📁 完整项目文件结构
 
 ```text
 agy-disciple/
@@ -162,7 +196,7 @@ agy-disciple/
 ├── README.md                   # 英文主文档
 ├── README_zh.md                # 简体中文文档
 ├── LICENSE                     # MIT 开源协议
-├── configure.py                # 模式与变体一键切换工具
+├── configure.py                # 模式与变体一键切换工具 (含 --doctor 环境体检)
 │
 ├── agents/                     # 通用 Sub-Agents 定义
 │   ├── dev.yaml                # 研发 Agent (草稿隔离法、沙盒自测)
@@ -184,6 +218,9 @@ agy-disciple/
 │   └── kanban-task-manager/    # 任务看板 FastMCP 服务端
 │
 └── scripts/
+    ├── watchdogs/              # 生产级自动化看门狗
+    │   ├── pve_watchdog.sh     # 远端 SSH / agy CLI 看门狗
+    │   └── jules_watchdog.sh   # Google Jules 云端流水线看门狗
     └── meta_resolver.py        # 集中式元数据路径解析工具
 ```
 

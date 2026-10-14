@@ -70,87 +70,122 @@ Task tracking automatically detects environment capabilities:
 
 ---
 
-## 🎛️ Dual-Mode Topology (Local vs. Server)
+## 🚦 Quick Start: Two Operating Modes & Setup
 
-`agy-disciple` seamlessly accommodates solo local developers and power users with remote servers:
-
-| Feature | Standalone / In-Repo (Default) | Server-Centralized / PVE |
-| :--- | :--- | :--- |
-| **Target Audience** | Individual developers, team Git repositories | Power users with PVE/Linux build servers |
-| **Metadata Location** | Inside project repo (`./kb`, `./tasks`, `./docs`) | Centralized in `~/.gemini/Projects/<name>` |
-| **Compute Topology** | Native local IDE sub-agents | Local Lead Architect + Remote SSH/Zellij agents |
-| **Night Shift** | Local autonomous `/goal` execution loop | Remote unattended multiplexer pipeline |
-
-### Instant Mode Switching
-
-Switch presets in one command via `configure.py`:
-
+Before starting, run the built-in diagnostic doctor to verify your environment:
 ```bash
-# Check current active configuration
-python configure.py --status
-
-# Apply default standalone / in-repo preset
-python configure.py --preset=standalone
-
-# Apply server-centralized / PVE preset
-python configure.py --preset=server-centralized
-
-# Granular adjustments
-python configure.py --meta=in-repo       # in-repo | centralized
-python configure.py --topology=local     # local | server
+python configure.py --doctor
 ```
 
----
+### Mode 1: Standalone / Local-First Mode (Default)
+**Best for**: Individual developers and teams working directly inside the Antigravity IDE.
 
-## 🚀 Quick Start
+#### 1. Prerequisites
+- **Git** (`git`)
+- **Python** (>= 3.8)
+- *No extra CLI binaries or remote servers required!*
 
-### Installation
-
-#### Method 1: Global Plugin (Recommended)
+#### 2. Installation
 Clone into your Antigravity global plugin directory:
 ```bash
 cd ~/.gemini/config/plugins/
 git clone https://github.com/<your-username>/agy-disciple.git
 ```
-Reload or restart Antigravity. The plugin will be automatically discovered.
+*(Or clone into `<project_root>/.agents/plugins/agy-disciple` for project-level usage).*
 
-#### Method 2: Project-Specific Plugin
-Clone into the project's `.agents/plugins/` directory:
+#### 3. Start Developing
+1. Open your project in the Antigravity IDE.
+2. Ensure the standalone preset is active:
+   ```bash
+   python configure.py --preset=standalone
+   ```
+3. Issue requests directly in the chat:
+   - *"Help me break down the authentication feature"* (triggers `task-breakdown` and spawns `dev`).
+   - *"Save our database decision"* (triggers `extract-knowledge`).
+   - *"I am heading off work"* (triggers local unattended `/goal` night shift).
+
+---
+
+### Mode 2: Remote Server & Jules Autonomous Mode
+**Best for**: Power users with a dedicated Linux/PVE server or teams leveraging Google Cloud Jules for unattended overnight pull requests.
+
+#### 1. Prerequisites & Tool Setup
+* **Remote Host (PVE / Cloud VM)**:
+  - **Antigravity CLI (`agy`)**: Install and authenticate on the remote server (see [Antigravity CLI Reference](https://antigravity.google/docs/cli)).
+  - **SSH Access**: Configure your SSH alias in `~/.ssh/config` (e.g. `Host my-pve`).
+  - **Zellij**: Install terminal multiplexer on the server (`cargo install zellij` or distro package).
+* **Google Cloud Jules (For GitHub Autonomous Pipeline)**:
+  - Set your API key in environment: `export JULES_API_KEY="AIzaSy..."` (or install and authenticate the `jules` CLI).
+  - **GitHub CLI (`gh`)**: Required if `--auto-merge` is enabled.
+* **Mutagen Sync (Optional)**:
+  - Install locally via `brew install mutagen-io/mutagen/mutagen` for real-time two-way code synchronization.
+
+#### 2. Enable Server Preset
+Run in the plugin root:
 ```bash
-mkdir -p .agents/plugins
-cd .agents/plugins
-git clone https://github.com/<your-username>/agy-disciple.git
+python configure.py --preset=server-centralized
+```
+
+#### 3. Launching Watchdogs
+The plugin provides two production-grade watchdog scripts in `scripts/watchdogs/`:
+
+##### Watchdog A: Remote PVE Server Watchdog (`pve_watchdog.sh`)
+Dispatches tasks to the remote server via SSH, runs `agy` in a persistent Zellij tab or background daemon, and monitors completion:
+```bash
+bash scripts/watchdogs/pve_watchdog.sh \
+  -t auth_001 \
+  -a dev \
+  -d /root/Projects/my-app \
+  -p "Implement JWT authentication" \
+  -h my-pve
+```
+
+##### Watchdog B: Google Jules Cloud Watchdog (`jules_watchdog.sh`)
+Dispatches tasks directly to Google Cloud Jules, monitors PR generation, and optionally auto-merges the PR via squash commit:
+```bash
+bash scripts/watchdogs/jules_watchdog.sh \
+  -t auth_001 \
+  -r "owner/repo" \
+  -b "main" \
+  -p "Fix security vulnerability in auth router" \
+  --auto-merge
 ```
 
 ---
 
-## 📦 Optional: Kanban Task Manager MCP
+## 🧭 File Placement Guide (MCP & Scripts)
 
-`agy-disciple` includes a self-contained, lightweight Kanban task manager MCP server built with FastMCP.
+In the Antigravity ecosystem, understanding where configurations and scripts live ensures clean modularity:
 
-### Setup in Antigravity
-1. Open Antigravity **Additional Options (...)** > **MCP Servers**.
-2. Add a new Stdio server:
-   - **Name**: `kanban-task-manager`
-   - **Command**: `uv`
-   - **Args**: `run`, `/absolute/path/to/agy-disciple/mcp/kanban-task-manager/server.py`
-
-Or declare it in `~/.gemini/config/mcp_config.json`:
-```json
-{
-  "mcpServers": {
-    "kanban-task-manager": {
-      "command": "uv",
-      "args": [
-        "run",
-        "/absolute/path/to/agy-disciple/mcp/kanban-task-manager/server.py"
-      ]
+### 1. Where do MCP Servers go?
+* **Bundled Location**: The included task manager MCP lives inside [mcp/kanban-task-manager/server.py](mcp/kanban-task-manager/server.py).
+* **System Registration**: To make an MCP server globally accessible across all Antigravity projects, register it in `~/.gemini/config/mcp_config.json`:
+  ```json
+  {
+    "mcpServers": {
+      "kanban-task-manager": {
+        "command": "uv",
+        "args": [
+          "run",
+          "/absolute/path/to/agy-disciple/mcp/kanban-task-manager/server.py"
+        ]
+      }
     }
   }
-}
-```
+  ```
+* **UI Alternative**: You can also add it visually via Antigravity IDE: **Additional Options (...) > MCP Servers > Add Server**.
 
-See [mcp/kanban-task-manager/README.md](mcp/kanban-task-manager/README.md) for details.
+### 2. Where do Custom Scripts go?
+* **Repository Scripts**: All project scripts and automation helpers are kept in `scripts/`:
+  - `scripts/watchdogs/`: Remote server and Jules dispatchers.
+  - `scripts/meta_resolver.py`: Centralized metadata path locator.
+  - `skills/setup-mutagen/scripts/`: Mutagen YAML generator.
+* **Global Access (Optional)**: If you wish to invoke the watchdogs from any terminal directory without specifying relative paths, symlink them to your global config directory:
+  ```bash
+  mkdir -p ~/.gemini/config/scripts
+  ln -sf $(pwd)/scripts/watchdogs/pve_watchdog.sh ~/.gemini/config/scripts/
+  ln -sf $(pwd)/scripts/watchdogs/jules_watchdog.sh ~/.gemini/config/scripts/
+  ```
 
 ---
 
@@ -162,7 +197,7 @@ agy-disciple/
 ├── README.md                   # English documentation
 ├── README_zh.md                # 简体中文文档
 ├── LICENSE                     # MIT License
-├── configure.py                # Preset and mode switcher
+├── configure.py                # Preset switcher & environment doctor (--doctor)
 │
 ├── agents/                     # Specialized Sub-Agent definitions
 │   ├── dev.yaml                # Dev Agent (draft suffix & sandboxed tests)
@@ -171,8 +206,8 @@ agy-disciple/
 │
 ├── skills/                     # Modular skills library
 │   ├── task-breakdown/         # Task decomposition & two-track confirmation
-│   ├── dev-manager/            # Development lifecycle orchestration
-│   ├── project-manager/        # Project metadata & task boards
+│   ├── dev-manager/            # Development lifecycle orchestration (local / server)
+│   ├── project-manager/        # Project metadata & task boards (in-repo / centralized)
 │   ├── extract-knowledge/      # Knowledge extraction & Graveyard radar
 │   ├── ops-manager/            # Operational script execution
 │   ├── test-environment/      # Test servers and preview management
@@ -181,9 +216,15 @@ agy-disciple/
 │   └── setup-mutagen/          # Smart language detection & Mutagen sync
 │
 ├── mcp/                        # Bundled MCP server
-│   └── kanban-task-manager/    # Standalone task management MCP server
+│   └── kanban-task-manager/
+│       ├── server.py           # Standalone FastMCP task board
+│       ├── mcp_config.example.json
+│       └── README.md           # Setup instructions
 │
 └── scripts/
+    ├── watchdogs/              # Production watchdog dispatchers
+    │   ├── pve_watchdog.sh     # Remote SSH / agy CLI watchdog
+    │   └── jules_watchdog.sh   # Google Cloud Jules autonomous watchdog
     └── meta_resolver.py        # Centralized metadata path resolver
 ```
 

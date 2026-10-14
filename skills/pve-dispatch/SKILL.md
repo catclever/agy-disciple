@@ -19,10 +19,10 @@ Before dispatching, check if the current project has a GitHub remote repository 
    git status
    git add . && git commit -m "chore: save before remote dispatch" && git push
    ```
-2. **Dispatch via Watchdog**:
-   Run the watchdog script on the remote host in the background:
+2. **Dispatch via Jules Watchdog**:
+   Run the Jules watchdog script on the remote host in the background:
    ```bash
-   ssh <REMOTE_HOST> "bash scripts/watchdog.sh -t '<Task_ID>' -r '<owner/repo>' -p '<Prompt>' -b '<branch>'"
+   ssh <REMOTE_HOST> "bash scripts/watchdogs/jules_watchdog.sh -t '<Task_ID>' -r '<owner/repo>' -p '<Prompt>' -b '<branch>'"
    ```
 3. **Wait for Completion Signal**:
    Wait for `/tmp/<Task_ID>.signal` to indicate completion.
@@ -36,9 +36,9 @@ Use this mode when working on a remote server without GitHub auto-merge pipeline
 
 1. **Prerequisite**: Task card logged in `tasks/`.
 2. **Assign via Remote Watchdog / CLI**:
-   Run the remote agent in the background on the remote server:
+   Run the PVE watchdog script in the background:
    ```bash
-   ssh <REMOTE_HOST> "cd <remote_project_dir> && agy -t '<Task_ID>' -p '<Prompt>'"
+   bash scripts/watchdogs/pve_watchdog.sh -t '<Task_ID>' -a '<dev|ops>' -d '<project_dir>' -p '<Prompt>' -h '<REMOTE_HOST>'
    ```
 3. **Wait for Native Wakeup**:
    Wait for completion notification or signal file.
