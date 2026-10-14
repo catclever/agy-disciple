@@ -3,7 +3,7 @@
 # agy_pve_watchdog.sh - Antigravity Remote Server Watchdog
 # Part of the agy-disciple multi-agent plugin suite.
 #
-# Dispatches dev or ops subagent tasks to a remote Linux/PVE server via SSH,
+# Dispatches dev or ops subagent tasks to a remote server (Linux/Mac mini/Cloud VPS) via SSH,
 # monitors autonomous execution in the background, and listens for the completion signal.
 # ==============================================================================
 
@@ -28,7 +28,7 @@ done
 
 if [[ -z "$TASK_ID" || -z "$PROJECT_DIR" || -z "$PROMPT" ]]; then
     echo "Usage: $0 -t <Task_ID> -a <dev|ops> -d <Project_Dir> -p <Prompt> [-m <Model>] [-h <Remote_Host>]"
-    echo "Example: $0 -t auth_001 -a dev -d /root/Projects/my-app -p 'Implement JWT validation' -h my-pve"
+    echo "Example: $0 -t auth_001 -a dev -d /path/to/my-app -p 'Implement JWT validation' -h my-server"
     exit 1
 fi
 

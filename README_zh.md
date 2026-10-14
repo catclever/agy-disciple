@@ -34,12 +34,35 @@ python configure.py --doctor
 ### 模式 A：本地单机模式 (Standalone / Local-First) —— 默认推荐
 **适用对象**：在本地 Antigravity IDE 客户端中直接开发的大多数个人与团队，支持本地 Sub-Agent 与本地直接调用 Jules 云端算力。
 
-1. **前置依赖**：
-   * 基础工具：Git (`git`) 与 Python (>= 3.8)；
-   * *(可选，用于 Jules 远程研发)*：
-     * 安装 `jules` CLI 命令行工具；
-     * 账号认证：执行 `jules login` 登录，或配置环境变量 `export JULES_API_KEY="your-api-key"`；
-   * *(可选，用于任务看板 MCP)*：安装 `uv`（或 `pip install mcp pyyaml`）。
+1. **前置依赖安装（直接执行命令）**：
+   * **基础运行环境 (Git & Python)**：
+     ```bash
+     # macOS
+     brew install git python
+     # Ubuntu / Debian
+     sudo apt update && sudo apt install -y git python3 python3-pip
+     ```
+   * *(可选，用于 Jules 远程研发与额度套利)*：
+     ```bash
+     # 1. 安装官方 Jules CLI 工具
+     npm install -g @google/jules
+
+     # 2. 账号认证（二选一）：
+     jules login   # 推荐：浏览器一键登录 Google 账号
+     # 或直接导出 API Key（可写入 ~/.bashrc 或 ~/.zshrc 永久生效）：
+     export JULES_API_KEY="your-api-key"
+
+     # 3. (可选) 安装 GitHub CLI，用于 PR 自动合并
+     brew install gh   # macOS
+     # sudo apt install -y gh  # Linux
+     ```
+   * *(可选，用于任务看板 FastMCP 服务)*：
+     ```bash
+     # 推荐方式：安装 uv 工具
+     curl -LsSf https://astral.sh/uv/install.sh | sh
+     # 备选方式：直接 pip 安装依赖
+     pip install mcp pyyaml
+     ```
 2. **安装插件**：
    ```bash
    cd ~/.gemini/config/plugins/
@@ -48,6 +71,7 @@ python configure.py --doctor
    *(或克隆到具体项目的 `.agents/plugins/agy-disciple` 作为项目专属插件)*。
 3. **开始使用**：
    ```bash
+   cd agy-disciple
    python configure.py --preset=standalone
    ```
    在 Antigravity 对话框中自然交互：
@@ -56,24 +80,64 @@ python configure.py --doctor
 
 ---
 
-### 模式 B：远端服务器 (PVE) 与 Jules 云端自主模式
-**适用对象**：拥有独立 Linux/PVE 构建服务器的高阶用户，用于实现 7x24 小时全天候离线无人值守研发。
+### 模式 B：远端服务器模式 (Remote Server & Jules Autonomous Mode)
+**适用对象**：拥有独立远端服务器（如 Linux 服务器、Mac mini、家用主机或各类云 VPS 等）的用户，用于实现 7x24 小时全天候离线无人值守研发。
 
-1. **前置依赖与配置**：
-   * **远端服务器 (PVE / 云主机)**：在 `~/.ssh/config` 配置别名（如 `Host my-pve`），并在服务器上安装 `agy` 命令行版及 `zellij` 终端复用器；
-   * **服务器端 Jules**：在服务器上安装 `jules` CLI，并通过 `jules login` 登录或在 `/root/.bashrc` 中配置环境变量 `$JULES_API_KEY`。
+1. **前置依赖与环境配置（直接执行命令）**：
+   * **步骤 1：本地 SSH 免密与别名配置 (`~/.ssh/config`)**：
+     ```ssh-config
+     Host my-server
+         HostName 192.168.1.100       # 服务器局域网/公网 IP 或域名
+         User root                    # 登录用户名（或日常账号）
+         IdentityFile ~/.ssh/id_rsa   # 本地私钥路径
+     ```
+     测试免密连接：`ssh my-server`
+   * **步骤 2：在服务器上安装终端复用器 (Zellij)**：
+     ```bash
+     # 在远端服务器上执行：
+     # Linux (Ubuntu / Debian / CentOS)
+     sudo apt update && sudo apt install -y zellij || cargo install --locked zellij
+     # macOS (若将 Mac mini 用作独立构建服务器)
+     brew install zellij
+     ```
+   * **步骤 3：在服务器上安装并认证 agy 命令行版**：
+     ```bash
+     # 在远端服务器上执行：安装 Antigravity CLI 并登录认证
+     agy auth login
+     ```
+   * **步骤 4：在服务器上安装并认证 Jules**：
+     ```bash
+     # 在远端服务器上执行：
+     npm install -g @google/jules
+     jules login
+     # 或直接写入环境变量并生效：
+     echo 'export JULES_API_KEY="your-api-key"' >> ~/.bashrc && source ~/.bashrc
+     ```
 2. **激活服务器预设**：
    ```bash
    python configure.py --preset=server-centralized
    ```
-3. **执行看门狗脚本 (Watchdogs)**：
-   ```bash
-   # 从远端服务器派发至 Google Jules 云端流水线
-   ssh my-pve "bash scripts/watchdogs/jules_watchdog.sh -t auth_001 -r owner/repo -p '修复并发锁漏洞' --auto-merge"
+3. **配置与调度看门狗脚本 (Watchdogs)**：
+   看门狗脚本位于仓库的 `scripts/watchdogs/` 目录下，支持**智能体全自动托管**与**开发者手动执行**双轨调度：
+   * **放置与就位**：
+     * 确保本地或服务器上的脚本已赋予可执行权限：
+       ```bash
+       chmod +x scripts/watchdogs/*.sh
+       ```
+     * *(可选建议)*：将看门狗脚本软链接至用户全局 PATH 或集中式脚本目录（如 `~/.gemini/config/scripts/`），方便随处直接调用。
+   * **运行方式 1：Antigravity 智能体全自动调度（推荐）**：
+     在 Antigravity 对话框中，无需您手动敲命令，主架构师或 `night-shift` / `pve-dispatch` 技能在识别到需要夜间研发或服务器执行时，**会自动在后台远程唤醒并监控看门狗脚本**：
+     * *“今晚下班后，把这个数据导出模块挂到服务器上跑，自测通过后自动合并”*
+     * *“将这个重构任务派发给远端服务器的 Jules 进行夜间自主流水线开发”*
+   * **运行方式 2：终端手动或 CI 流水线直接执行（备用）**：
+     开发者亦可在本地终端直接执行脚本进行调试或集成到自动化流程：
+     ```bash
+     # 方式 A：从本地触发远端服务器派发至 Google Jules 云端流水线
+     ssh my-server "bash scripts/watchdogs/jules_watchdog.sh -t auth_001 -r owner/repo -p '修复并发锁漏洞' --auto-merge"
 
-   # 派发至服务器本地 agy 智能体常驻会话
-   bash scripts/watchdogs/pve_watchdog.sh -t auth_001 -a dev -d /root/Projects/my-app -p "实现 Redis 缓存" -h my-pve
-   ```
+     # 方式 B：派发至服务器常驻的 agy 智能体自执行会话
+     bash scripts/watchdogs/pve_watchdog.sh -t auth_001 -a dev -d /path/to/project -p "实现 Redis 缓存" -h my-server
+     ```
 
 ---
 
@@ -89,7 +153,7 @@ python configure.py --doctor
   * **迎回 Gemini 3.1 Pro 真正智商**：Jules 标配 **Gemini 3.1 Pro**，在跨文件代码重构、架构理解和单元测试上全面碾压 3.8 Flash，代码质量断层领先；
   * **双部署形态（灵活选择）**：
     * *单机本地模式*：直接在本地调用 `scripts/watchdogs/jules_watchdog.sh`，读取本地 API Key 并发给 Jules；
-    * *服务器 PVE 模式*：通过 SSH 挂在远端 PVE 服务器后台，作为 24 小时不间断的夜班看门狗。
+    * *远端服务器模式*：通过 SSH 挂在独立服务器（Linux / Mac mini / 云主机）后台，作为 24 小时不间断的夜班看门狗。
   * **自动化云端 PR**：Jules 在云端虚拟机中自检代码并直接在 GitHub 上创建 Pull Request，支持配合 `gh pr merge --squash` 实现全自动合并。
 
 ### 2. 草稿后缀隔离法 (Draft Suffix Rule)
@@ -156,7 +220,7 @@ python configure.py --doctor
 # 切换为默认单机模式 (In-Repo)
 python configure.py --preset=standalone
 
-# 切换为服务器模式 (PVE / Centralized)
+# 切换为服务器模式 (Remote Server / Centralized)
 python configure.py --preset=server-centralized
 ```
 
@@ -185,7 +249,7 @@ python configure.py --preset=server-centralized
 ### 2. 自定义脚本放哪里？
 * **项目内脚本**：所有看门狗与调度工具均保存在仓库的 `scripts/` 目录下：
   - `scripts/watchdogs/jules_watchdog.sh`：Google Cloud Jules 云端流水线看门狗。
-  - `scripts/watchdogs/pve_watchdog.sh`：远端 PVE 服务器调度看门狗。
+  - `scripts/watchdogs/pve_watchdog.sh`：远端服务器调度看门狗。
   - `scripts/meta_resolver.py`：集中式元数据路径寻址器。
 * **全局快捷调用建议（可选）**：
   ```bash

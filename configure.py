@@ -162,7 +162,7 @@ def set_preset(preset_name: str):
         apply_variant("dev-manager", VARIANTS["dev-manager"]["server"])
         apply_variant("test-environment", VARIANTS["test-environment"]["server"])
         apply_variant("night-shift", VARIANTS["night-shift"]["server"])
-        print("\nSuccessfully switched to: [Server-Centralized / PVE] mode.")
+        print("\nSuccessfully switched to: [Server-Centralized / Remote Server] mode.")
     else:
         print(f"Unknown preset: '{preset_name}'. Supported presets: 'standalone', 'server-centralized'")
 

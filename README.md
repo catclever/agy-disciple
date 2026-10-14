@@ -34,12 +34,35 @@ python configure.py --doctor
 ### Option A: Standalone / Local-First Mode (Default)
 **Best for**: Solo developers and teams working directly inside the Antigravity IDE who want local sub-agents or local Jules cloud offloading.
 
-1. **Prerequisites**:
-   * Base Tools: Git (`git`) & Python (>= 3.8).
-   * *(Optional for Jules Cloud Dev)*:
-     * Install `jules` CLI;
-     * Authenticate: run `jules login` to log in, or configure `export JULES_API_KEY="your-api-key"`;
-   * *(Optional for Kanban MCP)*: `uv` (or `pip install mcp pyyaml`).
+1. **Prerequisites Installation (Direct Commands)**:
+   * **Base Environment (Git & Python)**:
+     ```bash
+     # macOS
+     brew install git python
+     # Ubuntu / Debian
+     sudo apt update && sudo apt install -y git python3 python3-pip
+     ```
+   * *(Optional for Jules Cloud Dev & Quota Arbitrage)*:
+     ```bash
+     # 1. Install official Jules CLI
+     npm install -g @google/jules
+
+     # 2. Authenticate (Choose either):
+     jules login   # Recommended: One-click browser login
+     # Or export your API key (persist in ~/.bashrc or ~/.zshrc):
+     export JULES_API_KEY="your-api-key"
+
+     # 3. (Optional) Install GitHub CLI for automated PR merges
+     brew install gh   # macOS
+     # sudo apt install -y gh  # Linux
+     ```
+   * *(Optional for Kanban FastMCP Server)*:
+     ```bash
+     # Recommended: Install uv
+     curl -LsSf https://astral.sh/uv/install.sh | sh
+     # Alternative: Install via pip
+     pip install mcp pyyaml
+     ```
 2. **Install Plugin**:
    ```bash
    cd ~/.gemini/config/plugins/
@@ -48,6 +71,7 @@ python configure.py --doctor
    *(Or clone into your project's `.agents/plugins/agy-disciple`)*.
 3. **Start Developing**:
    ```bash
+   cd agy-disciple
    python configure.py --preset=standalone
    ```
    Open Antigravity IDE and chat naturally:
@@ -56,25 +80,64 @@ python configure.py --doctor
 
 ---
 
-### Option B: Remote Server & Jules Autonomous Mode
-**Best for**: Power users with a dedicated Linux/PVE server for unattended 24/7 background development.
+### Option B: Remote Server Mode (Remote Server & Jules Autonomous Mode)
+**Best for**: Power users with a dedicated remote machine (Linux server, Mac mini, homelab host, or cloud VPS) for unattended 24/7 background development.
 
-1. **Prerequisites**:
-   * **Remote PVE / Linux Server**: Configured SSH alias in `~/.ssh/config` (e.g. `Host my-pve`), `agy` CLI installed and authenticated on the server, and `zellij` installed.
-   * **Server-side Jules**: Install `jules` CLI on the server, and authenticate via `jules login` or configure `$JULES_API_KEY` in `/root/.bashrc`.
+1. **Prerequisites & Configuration (Direct Commands)**:
+   * **Step 1: Configure SSH Alias (`~/.ssh/config`)**:
+     ```ssh-config
+     Host my-server
+         HostName 192.168.1.100       # Server IP or hostname
+         User root                    # Login username
+         IdentityFile ~/.ssh/id_rsa   # Private key path
+     ```
+     Verify connection: `ssh my-server`
+   * **Step 2: Install Terminal Multiplexer (Zellij) on the Server**:
+     ```bash
+     # Run on the remote server:
+     # Linux (Ubuntu / Debian / CentOS)
+     sudo apt update && sudo apt install -y zellij || cargo install --locked zellij
+     # macOS (if using a Mac mini as a build host)
+     brew install zellij
+     ```
+   * **Step 3: Install & Authenticate agy CLI on the Server**:
+     ```bash
+     # Run on the remote server: install Antigravity CLI and log in
+     agy auth login
+     ```
+   * **Step 4: Install & Authenticate Jules on the Server**:
+     ```bash
+     # Run on the remote server:
+     npm install -g @google/jules
+     jules login
+     # Or export API key directly to shell profile:
+     echo 'export JULES_API_KEY="your-api-key"' >> ~/.bashrc && source ~/.bashrc
+     ```
 2. **Activate Server Preset**:
    ```bash
    python configure.py --preset=server-centralized
    ```
-3. **Execute Watchdogs**:
-   Launch the remote PVE watchdog or server-side Jules watchdog:
-   ```bash
-   # Dispatch to Google Jules from server
-   ssh my-pve "bash scripts/watchdogs/jules_watchdog.sh -t auth_001 -r owner/repo -p 'Fix concurrency bug' --auto-merge"
+3. **Configure & Dispatch Watchdogs**:
+   Watchdog scripts are located under `scripts/watchdogs/`. They support dual-track execution: **fully autonomous agent delegation** or **manual command-line invocation**:
+   * **Setup & Placement**:
+     * Ensure scripts on your local machine or server are marked executable:
+       ```bash
+       chmod +x scripts/watchdogs/*.sh
+       ```
+     * *(Optional)*: Symlink watchdogs to your global PATH or script directory (e.g. `~/.gemini/config/scripts/`) for effortless invocation anywhere.
+   * **Execution Method 1: Autonomous Agent Delegation (Recommended)**:
+     No manual commands required. When chatting inside Antigravity, the Lead Architect and `night-shift` / `pve-dispatch` skills will **automatically invoke and monitor the watchdogs in the background**:
+     * *"When I sign off tonight, offload this data export module to run on the server, and auto-merge when verified"*
+     * *"Dispatch this refactor to remote server Jules for overnight autonomous pipeline development"*
+   * **Execution Method 2: Manual Terminal or CI Pipeline Invocation (Alternative)**:
+     Developers can also invoke the watchdogs directly from the terminal for debugging or CI/CD pipelines:
+     ```bash
+     # Option A: Trigger Jules autonomous cloud pipeline via remote server
+     ssh my-server "bash scripts/watchdogs/jules_watchdog.sh -t auth_001 -r owner/repo -p 'Fix concurrency bug' --auto-merge"
 
-   # Dispatch to remote server agy agent
-   bash scripts/watchdogs/pve_watchdog.sh -t auth_001 -a dev -d /root/Projects/my-app -p "Implement Redis cache" -h my-pve
-   ```
+     # Option B: Dispatch to remote server's resident agy agent session
+     bash scripts/watchdogs/pve_watchdog.sh -t auth_001 -a dev -d /path/to/project -p "Implement Redis cache" -h my-server
+     ```
 
 ---
 
@@ -90,7 +153,7 @@ python configure.py --doctor
   * **Reclaim True Gemini 3.1 Pro Intelligence**: Jules natively operates on **Gemini 3.1 Pro**, crushing 3.8 Flash in cross-file refactoring, dependency tracking, and nuanced unit test generation.
   * **Dual Jules Topologies (Your Choice)**:
     * *Local-First Mode*: Runs Jules locally via `scripts/watchdogs/jules_watchdog.sh` using your local `$JULES_API_KEY`.
-    * *Server Mode (PVE)*: Dispatches Jules to run on your remote PVE server as an unattended 24/7 background watchdog.
+    * *Remote Server Mode*: Dispatches Jules to run on your remote server (Linux / Mac mini / Cloud VPS) as an unattended 24/7 background watchdog.
   * **Automated Cloud PRs**: Jules executes inside cloud VMs and submits clean Pull Requests directly to GitHub, supporting automatic squash merging via `gh pr merge --squash`.
 
 ### 2. Draft Suffix Isolation (Draft Suffix Rule)
@@ -157,7 +220,7 @@ python configure.py --doctor
 # Apply default standalone / in-repo preset
 python configure.py --preset=standalone
 
-# Apply server-centralized / PVE preset
+# Apply server-centralized / remote server preset
 python configure.py --preset=server-centralized
 ```
 
