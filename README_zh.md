@@ -35,8 +35,10 @@ python configure.py --doctor
 **适用对象**：在本地 Antigravity IDE 客户端中直接开发的大多数个人与团队，支持本地 Sub-Agent 与本地直接调用 Jules 云端算力。
 
 1. **前置依赖**：
-   * Git (`git`) 与 Python (>= 3.8)；
-   * *(可选，用于 Jules 远程研发)*：配置本地环境变量 `export JULES_API_KEY="your-api-key"` 或安装登录 `jules` CLI；
+   * 基础工具：Git (`git`) 与 Python (>= 3.8)；
+   * *(可选，用于 Jules 远程研发)*：
+     * 安装 `jules` CLI 命令行工具；
+     * 账号认证：执行 `jules login` 登录，或配置环境变量 `export JULES_API_KEY="your-api-key"`；
    * *(可选，用于任务看板 MCP)*：安装 `uv`（或 `pip install mcp pyyaml`）。
 2. **安装插件**：
    ```bash
@@ -50,7 +52,7 @@ python configure.py --doctor
    ```
    在 Antigravity 对话框中自然交互：
    * *“帮我拆解这个登录功能，派发给 dev 编写草稿”*
-   * *“把这个复杂重构派发给 jules dev，利用云端额度和 3.1 Pro 解决”*
+   * *“把这个复杂重构派发给 jules dev”*
 
 ---
 
@@ -59,7 +61,7 @@ python configure.py --doctor
 
 1. **前置依赖与配置**：
    * **远端服务器 (PVE / 云主机)**：在 `~/.ssh/config` 配置别名（如 `Host my-pve`），并在服务器上安装 `agy` 命令行版及 `zellij` 终端复用器；
-   * **服务器端 Jules**：在服务器的 `/root/.bashrc` 中配置 `$JULES_API_KEY`。
+   * **服务器端 Jules**：在服务器上安装 `jules` CLI，并通过 `jules login` 登录或在 `/root/.bashrc` 中配置环境变量 `$JULES_API_KEY`。
 2. **激活服务器预设**：
    ```bash
    python configure.py --preset=server-centralized

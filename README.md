@@ -35,8 +35,10 @@ python configure.py --doctor
 **Best for**: Solo developers and teams working directly inside the Antigravity IDE who want local sub-agents or local Jules cloud offloading.
 
 1. **Prerequisites**:
-   * Git (`git`) & Python (>= 3.8).
-   * *(Optional for Jules Dev)*: `export JULES_API_KEY="your-api-key"` or `jules` CLI.
+   * Base Tools: Git (`git`) & Python (>= 3.8).
+   * *(Optional for Jules Cloud Dev)*:
+     * Install `jules` CLI;
+     * Authenticate: run `jules login` to log in, or configure `export JULES_API_KEY="your-api-key"`;
    * *(Optional for Kanban MCP)*: `uv` (or `pip install mcp pyyaml`).
 2. **Install Plugin**:
    ```bash
@@ -50,7 +52,7 @@ python configure.py --doctor
    ```
    Open Antigravity IDE and chat naturally:
    * *"Help me break down the auth feature and delegate to dev"*
-   * *"Dispatch this refactor to jules dev to save Antigravity tokens"*
+   * *"Dispatch this refactor to jules dev"*
 
 ---
 
@@ -59,7 +61,7 @@ python configure.py --doctor
 
 1. **Prerequisites**:
    * **Remote PVE / Linux Server**: Configured SSH alias in `~/.ssh/config` (e.g. `Host my-pve`), `agy` CLI installed and authenticated on the server, and `zellij` installed.
-   * **Server-side Jules**: Configure `$JULES_API_KEY` on the remote server (`/root/.bashrc`).
+   * **Server-side Jules**: Install `jules` CLI on the server, and authenticate via `jules login` or configure `$JULES_API_KEY` in `/root/.bashrc`.
 2. **Activate Server Preset**:
    ```bash
    python configure.py --preset=server-centralized
