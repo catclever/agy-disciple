@@ -69,12 +69,13 @@ python configure.py --doctor
    git clone https://github.com/catclever/agy-disciple.git
    ```
    *(Or clone into your project's `.agents/plugins/agy-disciple`)*.
-3. **Start Developing**:
+3. **Configure Environment**:
    ```bash
    cd agy-disciple
    python configure.py --preset=standalone
    ```
-   Open Antigravity IDE and chat naturally:
+4. **Start Developing**:
+   Open Antigravity IDE. The plugin is now ready to use. You can chat naturally in the Antigravity dialog. For example:
    * *"Help me break down the auth feature and delegate to dev"*
    * *"Dispatch this refactor to jules dev"*
 

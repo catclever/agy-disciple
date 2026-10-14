@@ -69,12 +69,13 @@ python configure.py --doctor
    git clone https://github.com/catclever/agy-disciple.git
    ```
    *(或克隆到具体项目的 `.agents/plugins/agy-disciple` 作为项目专属插件)*。
-3. **开始使用**：
+3. **配置环境**：
    ```bash
    cd agy-disciple
    python configure.py --preset=standalone
    ```
-   在 Antigravity 对话框中自然交互：
+4. **在 Antigravity 中开始开发**：
+   打开 Antigravity IDE，插件现在已经可以直接使用了。您可以在 Antigravity 对话框中自然交互，例如：
    * *“帮我拆解这个登录功能，派发给 dev 编写草稿”*
    * *“把这个复杂重构派发给 jules dev”*
 
