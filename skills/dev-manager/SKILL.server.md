@@ -8,23 +8,24 @@ This skill defines how the Lead Architect (Main Agent) orchestrates development 
 
 ## Topology Routing & Dev Engines
 
-Before delegating any development task, select the execution engine:
+By default, all development tasks MUST be delegated to the **Remote Server Native Agent (Engine 1)** or **Local Native dev (Engine 3)** without requiring external cloud setups. Use Jules ONLY when the user explicitly requests it.
 
-### Engine 1: Server-Side Jules Cloud Watchdog (Google Cloud Jules via PVE)
+### Engine 1: Remote Server Native Agent (`pve_watchdog.sh` / `agy`) [DEFAULT]
+- **Execution Target**: Dedicated remote server running `agy` inside a background session or watchdog.
+- **Why Default**: Reliable, zero-configuration out-of-the-box execution for any repository (GitHub, GitLab, or private local projects).
+
+### Engine 2: Server-Side Jules Cloud Watchdog [OPT-IN: Explicit Request Only]
 - **Execution Target**: Dispatched to the remote server via SSH, which runs Jules watchdog in the background:
   ```bash
   ssh <REMOTE_HOST> "bash scripts/watchdogs/jules_watchdog.sh -t '<Task_ID>' -r '<owner/repo>' -p '<Prompt>' [--auto-merge]"
   ```
+- **Trigger Condition**: Use ONLY when the user explicitly asks for Jules (e.g. "用 jules 跑", "派发给 jules dev", "run with jules") AND the project is pushed to GitHub with Jules credentials configured.
 - **Model & Quota**: **Gemini 3.1 Pro** running on dedicated Google Cloud Jules quota.
-- **Why Use**: Saves expensive Antigravity tokens, leverages 3.1 Pro's deep reasoning, and executes in the cloud completely immune to local client shutdowns.
-
-### Engine 2: Remote PVE Native Agent (`pve_watchdog.sh`)
-- **Execution Target**: Dedicated Linux/PVE server running `agy --remote-control` inside a persistent Zellij tab.
-- **Best For**: Non-GitHub private projects, heavy local builds, or custom server environments.
+- **Why Use**: Drains Ultra cloud allowance to save Antigravity tokens, with 3.1 Pro deep reasoning and cloud auto-merge.
 
 ### Engine 3: Local Native `dev` Agent (`agents/dev.yaml`)
 - **Execution Target**: Local Antigravity IDE conversation tree via `invoke_subagent`.
-- **Best For**: Quick, interactive code edits reviewed directly by the user.
+- **Best For**: Quick, interactive code edits reviewed directly by the user on the local client.
 
 ---
 

@@ -155,7 +155,8 @@ python configure.py --doctor
   * **双部署形态（灵活选择）**：
     * *单机本地模式*：直接在本地调用 `scripts/watchdogs/jules_watchdog.sh`，读取本地 API Key 并发给 Jules；
     * *远端服务器模式*：通过 SSH 挂在独立服务器（Linux / Mac mini / 云主机）后台，作为 24 小时不间断的夜班看门狗。
-  * **自动化云端 PR**：Jules 在云端虚拟机中自检代码并直接在 GitHub 上创建 Pull Request，支持配合 `gh pr merge --squash` 实现全自动合并。
+  * **自动化云端 PR**：Jules 在云端虚拟机中自检代码并直接在 GitHub 上创建 Pull Request，支持配合 `gh pr merge --squash` 实现全自动合并；
+  * **开箱即用默认原生，按需显式唤醒**：所有模式下**默认始终优先调度本地/服务器的原生 `dev` / `agy` 智能体**（零配置即可运行，不强制要求拥有 Ultra 会员或 Jules 凭证）；只有当您在对话中**显式要求**使用 Jules 时（如：“*派发给 jules dev*” 或 “*用 jules 跑*”），主架构师才会唤醒 Jules 云端研发流水线。
 
 ### 2. 草稿后缀隔离法 (Draft Suffix Rule)
 本地 `dev` 智能体在修改代码时，被严格禁止直接修改原始源码。所有改动必须创建带任务后缀的独立草稿文件（如 `api_task_auth_001.py`）：

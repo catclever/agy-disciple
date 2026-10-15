@@ -38,10 +38,10 @@ The Lead Architect can select the appropriate Dev engine depending on task compl
 ## Delegation Lifecycle
 
 0. **Prerequisite**: Register the task card in `tasks/` (via `kanban-task-manager` MCP or Markdown).
-1. **Engine Selection**:
-   - For light tasks or quick scripts -> Select **Engine A (Native `dev`)**.
-   - For complex features, multi-file refactors, or saving Antigravity tokens -> Select **Engine B (Local `jules-dev`)**.
+1. **Engine Selection (Default: Native `dev`)**:
+   - **Default Engine**: By default, ALWAYS select **Engine A (Native `dev` Agent)**. This guarantees zero-configuration, seamless execution inside Antigravity without requiring external cloud accounts or keys.
+   - **Opt-in Engine B (Local `jules-dev`)**: Select **Engine B** ONLY when the user explicitly requests it (e.g., "用 jules 跑", "派发给 jules dev", "利用 jules 额度", or "use jules") AND the repository is hosted on GitHub with Jules authentication configured.
 2. **Execute & Verify**:
-   - If Engine A: Wait for draft files, invoke `merger`, ask user to verify.
-   - If Engine B: Wait for `/tmp/<Task_ID>.signal`, review PR URL on GitHub, pull changes via `git pull`.
+   - If Engine A (Default): Wait for draft files, invoke `merger`, ask user to verify.
+   - If Engine B (Opt-in): Wait for `/tmp/<Task_ID>.signal`, review PR URL on GitHub, pull changes via `git pull`.
 3. **Completion**: Close the task card and report final status to the user.

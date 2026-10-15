@@ -8,13 +8,32 @@ When the user indicates they are leaving work or explicitly triggers the "Night 
 
 ## Routing: Choose the Execution Engine
 
-Check the project remote origin (`git remote get-url origin`):
-- **Path A (GitHub Projects)**: Headless cloud runner / Jules autonomous pipeline.
-- **Path B (Private / Remote Server Projects)**: Remote terminal multiplexer (Zellij / tmux session) with CLI agent.
+> [!IMPORTANT]
+> **Default Path**: Remote Server Multiplexer Session with native `agy` CLI agent (**Path A**). Works for all repositories without requiring GitHub cloud integration or Ultra subscriptions.
+> **Opt-in Path**: Google Cloud Jules autonomous pipeline (**Path B**), used ONLY when the user explicitly requests Jules (e.g., "夜间用 jules 跑", "run night shift with jules") AND the project is pushed to GitHub.
 
 ---
 
-## Path A: Headless Autonomous Pipeline (GitHub Projects)
+## Path A: Remote Multiplexer Session (Default: Server-Native `agy`)
+
+### Phase 1: Context Gathering & Clean Up
+1. Stop local watchdogs or background monitors.
+2. Note down running task IDs on remote server.
+3. Pre-handoff Git Checkpoint on remote server.
+
+### Phase 2: Handoff Execution
+Spawn a new master tab inside the persistent multiplexer session (e.g., Zellij `Antiverse` or tmux):
+```bash
+ssh <REMOTE_HOST> "zellij --session <SESSION_NAME> action new-tab --name '[<project_name>]' && zellij --session <SESSION_NAME> action write-chars 'cd <remote_dir> && agy --remote-control --dangerously-skip-permissions -i \"\$(cat commands/night_shift.txt)\"; echo \"Agent exited with code \$?\"' && zellij --session <SESSION_NAME> action send-keys 'Enter'"
+```
+
+### Phase 3: Autonomous SOPs on Server
+1. **Git Checkpoint Rule**: Commit before merging (`git add . && git commit -m "chore(auto): Night Shift checkpoint"`).
+2. **Infinite Loop Prevention**: If a task fails 3 consecutive times, mark it as `status: failed_needs_human`, kill the dev agent, and proceed to next task.
+
+---
+
+## Path B: Headless Autonomous Cloud Pipeline (Opt-in: Explicit Jules Request)
 
 ### Step 1: Pre-Handoff Checkpoint & Push
 Ensure all local work is committed and pushed to remote:
@@ -39,25 +58,6 @@ ssh <REMOTE_HOST> "nohup bash -c '
 ```
 
 ### Step 3: Inform User & Rollback Safety
-Inform the user that Night Shift is handed off.
+Inform the user that Night Shift is handed off to Jules.
 - The user can inspect completed tasks next morning via `git pull`.
 - Each task PR or squash commit is cleanly revertible.
-
----
-
-## Path B: Remote Multiplexer Session (Private / Server-Native Projects)
-
-### Phase 1: Context Gathering & Clean Up
-1. Stop local watchdogs or background monitors.
-2. Note down running task IDs on remote server.
-3. Pre-handoff Git Checkpoint on remote server.
-
-### Phase 2: Handoff Execution
-Spawn a new master tab inside the persistent multiplexer session (e.g., Zellij `Antiverse` or tmux):
-```bash
-ssh <REMOTE_HOST> "zellij --session <SESSION_NAME> action new-tab --name '[<project_name>]' && zellij --session <SESSION_NAME> action write-chars 'cd <remote_dir> && agy --remote-control --dangerously-skip-permissions -i \"\$(cat commands/night_shift.txt)\"; echo \"Agent exited with code \$?\"' && zellij --session <SESSION_NAME> action send-keys 'Enter'"
-```
-
-### Phase 3: Autonomous SOPs on Server
-1. **Git Checkpoint Rule**: Commit before merging (`git add . && git commit -m "chore(auto): Night Shift checkpoint"`).
-2. **Infinite Loop Prevention**: If a task fails 3 consecutive times, mark it as `status: failed_needs_human`, kill the dev agent, and proceed to next task.

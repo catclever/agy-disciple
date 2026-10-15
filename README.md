@@ -155,7 +155,8 @@ python configure.py --doctor
   * **Dual Jules Topologies (Your Choice)**:
     * *Local-First Mode*: Runs Jules locally via `scripts/watchdogs/jules_watchdog.sh` using your local `$JULES_API_KEY`.
     * *Remote Server Mode*: Dispatches Jules to run on your remote server (Linux / Mac mini / Cloud VPS) as an unattended 24/7 background watchdog.
-  * **Automated Cloud PRs**: Jules executes inside cloud VMs and submits clean Pull Requests directly to GitHub, supporting automatic squash merging via `gh pr merge --squash`.
+  * **Automated Cloud PRs**: Jules executes inside cloud VMs and submits clean Pull Requests directly to GitHub, supporting automatic squash merging via `gh pr merge --squash`;
+  * **Default Native Out-of-the-Box, Jules on Explicit Demand**: All modes **default to local/remote native `dev` / `agy` agents** (working instantly with zero extra setup or external cloud subscriptions); the Lead Architect dispatches to Google Cloud Jules **only when you explicitly ask for it** (e.g., *"Dispatch this refactor to jules dev"* or *"Run this with jules"*).
 
 ### 2. Draft Suffix Isolation (Draft Suffix Rule)
 When the local `dev` agent modifies code, it is strictly forbidden from touching original files. It generates task-suffixed drafts (e.g. `api_task_auth_001.py`):
