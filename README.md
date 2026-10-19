@@ -133,8 +133,16 @@ python configure.py --doctor
    * **Execution Method 2: Manual Terminal or CI Pipeline Invocation (Alternative)**:
      Developers can also invoke the watchdogs directly from the terminal for debugging or CI/CD pipelines:
      ```bash
-     # Option A: Trigger Jules autonomous cloud pipeline via remote server
-     ssh my-server "bash scripts/watchdogs/jules_watchdog.sh -t auth_001 -r owner/repo -p 'Fix concurrency bug' --auto-merge"
+     # Option A: Trigger Jules autonomous cloud pipeline via remote server (with pre-flight sync & autonomous defense)
+     ssh my-server 'bash -s' << 'EOF'
+     bash scripts/watchdogs/jules_watchdog.sh \
+       -t auth_001 \
+       -r owner/repo \
+       -p 'Fix concurrency bug' \
+       -d /path/to/project \
+       --autonomous \
+       --auto-merge
+     EOF
 
      # Option B: Dispatch to remote server's resident agy agent session
      bash scripts/watchdogs/pve_watchdog.sh -t auth_001 -a dev -d /path/to/project -p "Implement Redis cache" -h my-server
@@ -155,6 +163,11 @@ python configure.py --doctor
   * **Dual Jules Topologies (Your Choice)**:
     * *Local-First Mode*: Runs Jules locally via `scripts/watchdogs/jules_watchdog.sh` using your local `$JULES_API_KEY`.
     * *Remote Server Mode*: Dispatches Jules to run on your remote server (Linux / Mac mini / Cloud VPS) as an unattended 24/7 background watchdog.
+  * **Git Pre-Flight Synchronization (`-d <dir>`)**: Automatically inspects working tree changes before dispatch, commits dirty state, fetches remote changes, rebases on divergence, and pushes to ensure cloud and local codebases are 100% aligned;
+  * **3-Layer Autonomous Defense System (`--autonomous`)**:
+    * *Defense 1 (Plan Suppression)*: Injects `requirePlanApproval=false` during session creation to bypass plan approval stops;
+    * *Defense 2 (Plan Auto-Approval)*: Intercepts `AWAITING_PLAN_APPROVAL` states during polling and calls the `:approvePlan` endpoint to authorize execution;
+    * *Defense 3 (Auto-Feedback Directives)*: Intercepts `AWAITING_USER_FEEDBACK` queries and issues directive instructions via `:sendMessage` to unblock stalled agents (up to 3 times);
   * **Automated Cloud PRs**: Jules executes inside cloud VMs and submits clean Pull Requests directly to GitHub, supporting automatic squash merging via `gh pr merge --squash`;
   * **Default Native Out-of-the-Box, Jules on Explicit Demand**: All modes **default to local/remote native `dev` / `agy` agents** (working instantly with zero extra setup or external cloud subscriptions); the Lead Architect dispatches to Google Cloud Jules **only when you explicitly ask for it** (e.g., *"Dispatch this refactor to jules dev"* or *"Run this with jules"*).
 

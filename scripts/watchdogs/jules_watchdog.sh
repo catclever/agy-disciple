@@ -5,16 +5,24 @@
 #
 # Dispatches coding/ops tasks to Google Jules, monitors session status,
 # captures PR deliverables, and supports autonomous PR auto-merge.
+# Includes pre-flight Git auto-commit & push synchronization check.
+# Supports Dual Modes:
+#   - Standard Mode (Default): Preserves human plan approval & feedback.
+#   - Autonomous Mode (--autonomous): Activates Defenses 1, 2, 3 for zero-stalls.
 # ==============================================================================
 
-# Default configurations
+# Default values
 BRANCH="main"
 AUTO_MERGE=false
+AUTONOMOUS=false
+MAX_AUTO_REPLIES=3
+AUTO_REPLY_COUNT=0
 POLL_INTERVAL=30
 TASK_ID=""
 REPO=""
 PROMPT=""
 API_KEY=""
+PROJECT_DIR=""
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -22,16 +30,17 @@ while [[ "$#" -gt 0 ]]; do
         -r|--repo) REPO="$2"; shift ;;
         -b|--branch) BRANCH="$2"; shift ;;
         -p|--prompt) PROMPT="$2"; shift ;;
+        -d|--dir) PROJECT_DIR="$2"; shift ;;
         -k|--api-key) API_KEY="$2"; shift ;;
         --auto-merge) AUTO_MERGE=true ;;
+        --autonomous|--auto-approve) AUTONOMOUS=true ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
     shift
 done
 
 if [[ -z "$TASK_ID" || -z "$REPO" || -z "$PROMPT" ]]; then
-    echo "Usage: $0 -t <Task_ID> -r <owner/repo> -p <Prompt> [-b <branch>] [-k <API_KEY>] [--auto-merge]"
-    echo "Example: $0 -t auth_001 -r owner/repo -p 'Fix JWT expiration bug' --auto-merge"
+    echo "Usage: $0 -t <Task_ID> -r <owner/repo> -p <Prompt> [-d <Project_Dir>] [-b <branch>] [-k <API_KEY>] [--autonomous] [--auto-merge]"
     exit 1
 fi
 
@@ -41,34 +50,145 @@ LOG_FILE="/tmp/jules_${TASK_ID}.log"
 # Clean up any leftover signal file
 rm -f "$SIGNAL_FILE"
 
-# Resolve API Key from argument, env, or user config
+# Resolve API Key
 if [[ -z "$API_KEY" ]]; then
     API_KEY="$JULES_API_KEY"
 fi
-if [[ -z "$API_KEY" && -f "$HOME/.config/jules/env" ]]; then
-    source "$HOME/.config/jules/env"
-    API_KEY="$JULES_API_KEY"
+
+# Fallback: Check ~/.config/jules/env or shell profiles if not in current environment
+if [[ -z "$API_KEY" ]]; then
+    if [[ -f "$HOME/.config/jules/env" ]]; then
+        source "$HOME/.config/jules/env"
+        API_KEY="$JULES_API_KEY"
+    fi
 fi
 
 echo "=== Jules Watchdog Initialized ===" | tee "$LOG_FILE"
 echo "Task ID         : $TASK_ID" | tee -a "$LOG_FILE"
 echo "Target Repo     : $REPO" | tee -a "$LOG_FILE"
 echo "Starting Branch : $BRANCH" | tee -a "$LOG_FILE"
+echo "Project Dir     : ${PROJECT_DIR:-'(Not specified, checking PWD)'}" | tee -a "$LOG_FILE"
+echo "Autonomous Mode : $AUTONOMOUS (Defenses 1, 2, 3)" | tee -a "$LOG_FILE"
 echo "Auto Merge      : $AUTO_MERGE" | tee -a "$LOG_FILE"
 
 # ------------------------------------------------------------------------------
+# 0. Git Pre-Flight Synchronization
+# Ensures local Git state matches remote origin before Jules dispatches.
+# If not synced, commit and push. If any step fails, abort immediately.
+# ------------------------------------------------------------------------------
+TARGET_GIT_DIR=""
+if [[ -n "$PROJECT_DIR" ]]; then
+    if [[ ! -d "$PROJECT_DIR" ]]; then
+        echo "FAILED: Specified project directory does not exist: $PROJECT_DIR" | tee -a "$LOG_FILE"
+        echo "FAILED: GIT_DIR_NOT_FOUND" > "$SIGNAL_FILE"
+        exit 1
+    fi
+    TARGET_GIT_DIR="$PROJECT_DIR"
+elif git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    TARGET_GIT_DIR="$PWD"
+fi
+
+if [[ -n "$TARGET_GIT_DIR" ]]; then
+    echo "Checking Git synchronization in: $TARGET_GIT_DIR" | tee -a "$LOG_FILE"
+    cd "$TARGET_GIT_DIR" || {
+        echo "FAILED: Cannot enter directory $TARGET_GIT_DIR" | tee -a "$LOG_FILE"
+        echo "FAILED: GIT_CD_FAILED" > "$SIGNAL_FILE"
+        exit 1
+    }
+
+    if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+        echo "FAILED: $TARGET_GIT_DIR is not a Git repository" | tee -a "$LOG_FILE"
+        echo "FAILED: NOT_A_GIT_REPO" > "$SIGNAL_FILE"
+        exit 1
+    fi
+
+    # 1. Commit uncommitted changes if any
+    if [[ -n $(git status --porcelain) ]]; then
+        echo "Uncommitted changes detected. Committing..." | tee -a "$LOG_FILE"
+        git add -A 2>&1 | tee -a "$LOG_FILE"
+        if ! git commit -m "chore(auto): pre-jules sync checkpoint for task ${TASK_ID}" 2>&1 | tee -a "$LOG_FILE"; then
+            echo "FAILED: Failed to commit local changes" | tee -a "$LOG_FILE"
+            echo "FAILED: GIT_COMMIT_FAILED" > "$SIGNAL_FILE"
+            exit 1
+        fi
+    else
+        echo "Working tree clean." | tee -a "$LOG_FILE"
+    fi
+
+    # 2. Fetch remote branch
+    echo "Fetching remote origin/${BRANCH}..." | tee -a "$LOG_FILE"
+    if ! git fetch origin "$BRANCH" 2>&1 | tee -a "$LOG_FILE"; then
+        echo "FAILED: Failed to fetch origin/${BRANCH}" | tee -a "$LOG_FILE"
+        echo "FAILED: GIT_FETCH_FAILED" > "$SIGNAL_FILE"
+        exit 1
+    fi
+
+    # 3. Check divergence between local and remote
+    LOCAL_REV=$(git rev-parse HEAD 2>/dev/null)
+    REMOTE_REV=$(git rev-parse "origin/${BRANCH}" 2>/dev/null)
+
+    if [[ "$LOCAL_REV" != "$REMOTE_REV" ]]; then
+        echo "Local ($LOCAL_REV) and remote ($REMOTE_REV) differ. Synchronizing..." | tee -a "$LOG_FILE"
+
+        BEHIND=$(git rev-list --count HEAD.."origin/${BRANCH}" 2>/dev/null || echo 0)
+        AHEAD=$(git rev-list --count "origin/${BRANCH}"..HEAD 2>/dev/null || echo 0)
+
+        if [[ "$BEHIND" -gt 0 ]]; then
+            echo "Local is $BEHIND commit(s) behind remote. Attempting rebase..." | tee -a "$LOG_FILE"
+            if ! git pull --rebase origin "$BRANCH" 2>&1 | tee -a "$LOG_FILE"; then
+                echo "FAILED: Conflict or error during git pull --rebase" | tee -a "$LOG_FILE"
+                git rebase --abort 2>/dev/null || true
+                echo "FAILED: GIT_PULL_REBASE_FAILED" > "$SIGNAL_FILE"
+                exit 1
+            fi
+        fi
+
+        echo "Pushing local changes to origin/${BRANCH}..." | tee -a "$LOG_FILE"
+        if ! git push origin "$BRANCH" 2>&1 | tee -a "$LOG_FILE"; then
+            echo "FAILED: Failed to push to origin/${BRANCH}" | tee -a "$LOG_FILE"
+            echo "FAILED: GIT_PUSH_FAILED" > "$SIGNAL_FILE"
+            exit 1
+        fi
+
+        # Verify sync state again
+        git fetch origin "$BRANCH" >/dev/null 2>&1
+        LOCAL_REV=$(git rev-parse HEAD 2>/dev/null)
+        REMOTE_REV=$(git rev-parse "origin/${BRANCH}" 2>/dev/null)
+
+        if [[ "$LOCAL_REV" != "$REMOTE_REV" ]]; then
+            echo "FAILED: Git local and remote are still not synchronized after push/pull" | tee -a "$LOG_FILE"
+            echo "FAILED: GIT_SYNC_VERIFY_FAILED" > "$SIGNAL_FILE"
+            exit 1
+        fi
+    fi
+
+    echo "Git pre-flight sync successful: HEAD is aligned with origin/${BRANCH} ($LOCAL_REV)." | tee -a "$LOG_FILE"
+else
+    echo "No Git workspace specified or detected. Skipping local Git pre-flight sync." | tee -a "$LOG_FILE"
+fi
+
+# ------------------------------------------------------------------------------
 # 1. Dispatching to Jules (API or CLI)
+# Defense 1: If Autonomous Mode is on, requirePlanApproval=false suppresses manual stop.
 # ------------------------------------------------------------------------------
 SESSION_ID=""
 
+if [[ "$AUTONOMOUS" == "true" ]]; then
+    REQUIRE_PLAN_APPROVAL=false
+else
+    REQUIRE_PLAN_APPROVAL=true
+fi
+
 if [[ -n "$API_KEY" ]]; then
-    echo "Authenticating via Jules REST API..." | tee -a "$LOG_FILE"
+    echo "Using Jules REST API (API Key authenticated)..." | tee -a "$LOG_FILE"
+    echo "requirePlanApproval set to: $REQUIRE_PLAN_APPROVAL" | tee -a "$LOG_FILE"
     
     PAYLOAD=$(jq -n \
       --arg prompt "$PROMPT" \
       --arg repo "sources/github/$REPO" \
       --arg branch "$BRANCH" \
       --arg title "Task $TASK_ID" \
+      --argjson requirePlan "$REQUIRE_PLAN_APPROVAL" \
       '{
         prompt: $prompt,
         sourceContext: {
@@ -77,6 +197,7 @@ if [[ -n "$API_KEY" ]]; then
             startingBranch: $branch
           }
         },
+        requirePlanApproval: $requirePlan,
         automationMode: "AUTO_CREATE_PR",
         title: $title
       }')
@@ -107,6 +228,7 @@ else
         exit 1
     fi
 
+    # Attempt to extract session ID from CLI output
     SESSION_ID=$(echo "$CLI_OUTPUT" | grep -oE "sessions/[a-zA-Z0-9_-]+" | head -n 1)
     if [[ -z "$SESSION_ID" ]]; then
         SESSION_ID=$(echo "$CLI_OUTPUT" | grep -oE "[0-9]{5,}" | head -n 1)
@@ -117,7 +239,7 @@ echo "Jules Session Created: $SESSION_ID" | tee -a "$LOG_FILE"
 echo "IN_PROGRESS: $SESSION_ID" > "$SIGNAL_FILE"
 
 # ------------------------------------------------------------------------------
-# 2. Polling for Completion
+# 2. Polling for Completion & Handling Confirmations (Defenses 2 & 3)
 # ------------------------------------------------------------------------------
 echo "Monitoring Jules Session for completion..." | tee -a "$LOG_FILE"
 
@@ -129,7 +251,44 @@ while true; do
         STATE=$(echo "$STATUS_RESP" | jq -r '.state // empty')
         echo "[$(date '+%Y-%m-%d %H:%M:%S')] Current State: $STATE" >> "$LOG_FILE"
 
-        if [[ "$STATE" == "SUCCEEDED" || "$STATE" == "COMPLETED" ]]; then
+        # Reset auto-reply counter when session transitions away from AWAITING_USER_FEEDBACK
+        if [[ "$STATE" != "AWAITING_USER_FEEDBACK" && "$AUTO_REPLY_COUNT" -gt 0 ]]; then
+            echo "[$(date '+%Y-%m-%d %H:%M:%S')] State transitioned to $STATE. Resetting auto-feedback counter to 0." >> "$LOG_FILE"
+            AUTO_REPLY_COUNT=0
+        fi
+
+        # Defense 2: Auto-approve plan if Jules enters AWAITING_PLAN_APPROVAL
+        if [[ "$STATE" == "AWAITING_PLAN_APPROVAL" ]]; then
+            if [[ "$AUTONOMOUS" == "true" ]]; then
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] [Defense 2] Auto-approving plan for session $SESSION_ID..." | tee -a "$LOG_FILE"
+                APPROVE_RESP=$(curl -s -X POST "https://jules.googleapis.com/v1alpha/${SESSION_ID}:approvePlan" \
+                  -H "X-Goog-Api-Key: $API_KEY" \
+                  -H "Content-Type: application/json")
+                echo "ApprovePlan Response: $APPROVE_RESP" >> "$LOG_FILE"
+            else
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] Session is awaiting manual plan approval at https://jules.google.com" >> "$LOG_FILE"
+            fi
+
+        # Defense 3: Auto-respond if Jules asks clarifying questions (AWAITING_USER_FEEDBACK)
+        elif [[ "$STATE" == "AWAITING_USER_FEEDBACK" ]]; then
+            if [[ "$AUTONOMOUS" == "true" ]]; then
+                if [[ "$AUTO_REPLY_COUNT" -lt "$MAX_AUTO_REPLIES" ]]; then
+                    AUTO_REPLY_COUNT=$((AUTO_REPLY_COUNT + 1))
+                    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [Defense 3] Auto-responding to clarification ($AUTO_REPLY_COUNT/$MAX_AUTO_REPLIES)..." | tee -a "$LOG_FILE"
+                    MSG_RESP=$(curl -s -X POST "https://jules.googleapis.com/v1alpha/${SESSION_ID}:sendMessage" \
+                      -H "X-Goog-Api-Key: $API_KEY" \
+                      -H "Content-Type: application/json" \
+                      -d '{"prompt": "Please proceed with your recommended best practice solution."}')
+                    echo "SendMessage Response: $MSG_RESP" >> "$LOG_FILE"
+                else
+                    # Do NOT break the loop! Stop sending messages in this branch, keep polling and allow manual/agent progress.
+                    echo "[$(date '+%Y-%m-%d %H:%M:%S')] [Defense 3] Max auto-replies ($MAX_AUTO_REPLIES) reached for current inquiry. Suppressing further auto-messages; continuing to monitor..." >> "$LOG_FILE"
+                fi
+            else
+                echo "[$(date '+%Y-%m-%d %H:%M:%S')] Session is awaiting manual user feedback at https://jules.google.com" >> "$LOG_FILE"
+            fi
+
+        elif [[ "$STATE" == "SUCCEEDED" || "$STATE" == "COMPLETED" ]]; then
             PR_URL=$(echo "$STATUS_RESP" | jq -r '.. | .url? // empty' | grep -E "github.com/[^/]+/[^/]+/pull/[0-9]+" | head -n 1)
             if [[ -z "$PR_URL" ]]; then
                 PR_URL=$(echo "$STATUS_RESP" | jq -r '.outputs.pullRequestUrl // .pullRequest.url // empty')

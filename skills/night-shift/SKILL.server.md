@@ -45,10 +45,20 @@ git push origin main
 
 ### Step 2: Queue Remaining Tasks to Autonomous Runner
 Compile pending tasks from `tasks/` into an automated sequential pipeline on the remote server:
+
+> [!IMPORTANT]
+> **Mandatory Autonomous Flags**: In Night Shift mode, tasks MUST be invoked with `--autonomous` (arming Defenses 1, 2, 3 to prevent plan/clarification stalls), `-d "<project_dir>"` (pre-flight Git sync), and `--auto-merge` (automatic squash merge once CI passes).
+
 ```bash
 ssh <REMOTE_HOST> "nohup bash -c '
   for task in <TASK_LIST>; do
-    bash scripts/watchdogs/jules_watchdog.sh -t \"\$task\" -r \"<owner/repo>\" -p \"<Prompt>\" --auto-merge
+    bash scripts/watchdogs/jules_watchdog.sh \
+      -t \"\$task\" \
+      -r \"<owner/repo>\" \
+      -p \"<Prompt>\" \
+      -d \"<project_dir>\" \
+      --autonomous \
+      --auto-merge
     if [ \$(cat /tmp/\${task}.signal | grep -c \"DONE\") -eq 0 ]; then
       echo \"Task \$task failed, stopping pipeline.\"
       break

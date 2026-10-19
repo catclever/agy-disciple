@@ -133,8 +133,16 @@ python configure.py --doctor
    * **运行方式 2：终端手动或 CI 流水线直接执行（备用）**：
      开发者亦可在本地终端直接执行脚本进行调试或集成到自动化流程：
      ```bash
-     # 方式 A：从本地触发远端服务器派发至 Google Jules 云端流水线
-     ssh my-server "bash scripts/watchdogs/jules_watchdog.sh -t auth_001 -r owner/repo -p '修复并发锁漏洞' --auto-merge"
+     # 方式 A：从本地触发远端服务器派发至 Google Jules 云端流水线 (支持预检与全自主防御)
+     ssh my-server 'bash -s' << 'EOF'
+     bash scripts/watchdogs/jules_watchdog.sh \
+       -t auth_001 \
+       -r owner/repo \
+       -p '修复并发锁漏洞' \
+       -d /path/to/project \
+       --autonomous \
+       --auto-merge
+     EOF
 
      # 方式 B：派发至服务器常驻的 agy 智能体自执行会话
      bash scripts/watchdogs/pve_watchdog.sh -t auth_001 -a dev -d /path/to/project -p "实现 Redis 缓存" -h my-server
@@ -155,6 +163,11 @@ python configure.py --doctor
   * **双部署形态（灵活选择）**：
     * *单机本地模式*：直接在本地调用 `scripts/watchdogs/jules_watchdog.sh`，读取本地 API Key 并发给 Jules；
     * *远端服务器模式*：通过 SSH 挂在独立服务器（Linux / Mac mini / 云主机）后台，作为 24 小时不间断的夜班看门狗。
+  * **Git 预检对齐机制 (`-d <dir>`)**：派发前自动检测工作区变动，自动提交未存脏树、拉取远端更新、Rebase 对齐并推送，彻底杜绝本地与云端代码基线不同步问题；
+  * **全自主三重防御体系 (`--autonomous`)**：
+    * *防御 1 (规划免审)*：建联阶段注入 `requirePlanApproval=false`，抑制无谓规划卡点；
+    * *防御 2 (方案代签)*：轮询遇 `AWAITING_PLAN_APPROVAL` 时，自动调用 `:approvePlan` 接口批准执行；
+    * *防御 3 (智能代答)*：轮询遇 `AWAITING_USER_FEEDBACK` 质询时，自动调用 `:sendMessage` 发送最佳实践指令打破死锁（上限 3 次）；
   * **自动化云端 PR**：Jules 在云端虚拟机中自检代码并直接在 GitHub 上创建 Pull Request，支持配合 `gh pr merge --squash` 实现全自动合并；
   * **开箱即用默认原生，按需显式唤醒**：所有模式下**默认始终优先调度本地/服务器的原生 `dev` / `agy` 智能体**（零配置即可运行，不强制要求拥有 Ultra 会员或 Jules 凭证）；只有当您在对话中**显式要求**使用 Jules 时（如：“*派发给 jules dev*” 或 “*用 jules 跑*”），主架构师才会唤醒 Jules 云端研发流水线。
 

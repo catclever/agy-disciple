@@ -19,7 +19,7 @@ The Lead Architect can select the appropriate Dev engine depending on task compl
 ### Engine Option B: Local `jules-dev` Agent (`agents/jules-dev.yaml`)
 - **Execution Target**: Google Cloud Jules cloud VM launched via local watchdog:
   ```bash
-  bash scripts/watchdogs/jules_watchdog.sh -t '<Task_ID>' -r '<owner/repo>' -p '<Prompt>' [--auto-merge]
+  bash scripts/watchdogs/jules_watchdog.sh -t '<Task_ID>' -r '<owner/repo>' -p '<Prompt>' [-d '<project_dir>'] [--autonomous] [--auto-merge]
   ```
 - **Model & Quota**: **Gemini 3.1 Pro** running on dedicated Jules cloud quota.
 - **Strategic Value (Quota Arbitrage)**:
