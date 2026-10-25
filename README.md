@@ -1,363 +1,315 @@
 # agy-disciple 🚀
 
-<div align="center">
-
-**A Production-Grade Multi-Agent Development Team Plugin for Google Antigravity (AGY)**
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![GitHub Stars](https://img.shields.io/github/stars/catclever/agy-disciple?style=flat&color=yellow)](https://github.com/catclever/agy-disciple/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/catclever/agy-disciple?style=flat&color=orange)](https://github.com/catclever/agy-disciple/network/members)
-[![GitHub Issues](https://img.shields.io/github/issues/catclever/agy-disciple?style=flat&color=red)](https://github.com/catclever/agy-disciple/issues)
-[![Antigravity](https://img.shields.io/badge/Antigravity-Plugin-purple.svg)](https://antigravity.google)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/catclever/agy-disciple/pulls)
-
 [English](README.md) | [简体中文](README_zh.md)
 
-</div>
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Antigravity](https://img.shields.io/badge/Antigravity-Plugin-purple.svg)](https://antigravity.google)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com)
+
+> **A Production-Grade Multi-Agent Development Team Plugin for Google Antigravity (AGY)**  
+> Transform single-threaded agent interactions into a disciplined, hierarchical engineering squad: Lead Architect, Dev, Merger, and Ops.
 
 ---
 
-> **Transform your single-threaded AI pair programmer into a disciplined, hierarchical engineering organization:**  
-> **Lead Architect** 🏛️ &nbsp;•&nbsp; **Dev Sub-Agents** 💻 &nbsp;•&nbsp; **Merger Agent** 🔀 &nbsp;•&nbsp; **Ops Sub-Agent** ⚙️
+## 1. 📖 Overview
+
+Standard AI coding assistants operate as monolithic single agents. When faced with complex features or large refactors, developers frequently face critical bottlenecks:
+* **Google's Monetization Trap & The Model Void**: In a transparent push for commercial monetization, Google removed the sweet-spot **Gemini 3.1 Pro** from the Antigravity client. Developers are left stranded between **Gemini 4 Argon (a notorious "Quota Assassin" whose deep-thinking tokens devour monthly tier limits in minutes)** and **Gemini 3.8 Flash (lightweight and cheap, but still no match for 3.1 Pro on complex multi-file reasoning and refactoring)**. Local quotas drain at alarming speeds;
+* **The Untapped Jules Treasure**: Many developers subscribe to Google Ultra, with abundant, high-volume **Google Cloud Jules allowances** sitting in their accounts, yet Antigravity provides zero native integration to leverage them—leaving massive amounts of premium compute completely idle;
+* **Context Window Pollution**: Raw compile logs, test stack traces, and trial-and-error attempts flood the main conversation context;
+* **Source Code Corruption**: Agents directly mutate production source files, risking broken working trees and hallucinated deletions;
+* **Repeated Anti-Patterns**: Without negative knowledge tracking, agents repeatedly suggest dead-end solutions previously proven broken.
+
+`agy-disciple` (**Antigravity Disciple**) breaks through this monetization wall with a **hierarchical multi-agent engineering workflow**. It positions the local session as a **Lead Architect**, seamlessly offloading heavy implementation to remote **Google Cloud Jules running Gemini 3.1 Pro on independent cloud quotas**—fully exploiting your rich Ultra Jules allowance without burning expensive local 4 Argon tokens—guarded by draft suffix isolation, double knowledge audits, and data-driven Kanban boards.
 
 ---
 
-## 📑 Table of Contents
+## 2. 🚦 Quick Start
 
-- [1. Why agy-disciple?](#1-why-agy-disciple)
-  - [The Commercial Bottlenecks](#the-commercial-bottlenecks)
-  - [Feature Comparison](#feature-comparison)
-- [2. 🏛️ Architecture Overview](#2-️-architecture-overview)
-  - [The Engineering Squad](#the-engineering-squad)
-- [3. ⚡ Core Capabilities](#3--core-capabilities)
-  - [1. Jules Cloud Delegation & Quota Arbitrage (Gemini 3.1 Pro)](#1-jules-cloud-delegation--quota-arbitrage-gemini-31-pro)
-  - [2. Draft Suffix Isolation (Zero Source Corruption)](#2-draft-suffix-isolation-zero-source-corruption)
-  - [3. Double Knowledge Base Audit & Graveyard Radar](#3-double-knowledge-base-audit--graveyard-radar)
-  - [4. Data-Driven FastMCP Kanban Board](#4-data-driven-fastmcp-kanban-board)
-  - [5. 24/7 Unattended Night Shift & Smart Mutagen Sync](#5-247-unattended-night-shift--smart-mutagen-sync)
-- [4. 🚦 Quick Start](#4--quick-start)
-  - [Environment Health Check](#environment-health-check)
-  - [Option A: Standalone / Local-First Mode (Default)](#option-a-standalone--local-first-mode-default)
-  - [Option B: Remote Server Mode (Headless 24/7 Pipeline)](#option-b-remote-server-mode-headless-247-pipeline)
-- [5. 🎛️ Preset Switcher (`configure.py`)](#5-️-preset-switcher-configurepy)
-- [6. 🧭 Production Watchdogs & Automation](#6--production-watchdogs--automation)
-- [7. 📁 Repository Structure](#7--repository-structure)
-- [8. 🤝 Contributing](#8--contributing)
-- [9. 📄 License](#9--license)
-
----
-
-## 1. Why agy-disciple?
-
-### The Commercial Bottlenecks
-
-Standard AI coding assistants operate as monolithic single agents. When tackling complex real-world codebases, developers hit painful roadblocks:
-
-1. **Google's Commercial Quota Dilemma**: In an aggressive push for paid monetization, Google removed the highly-balanced **Gemini 3.1 Pro** from the Antigravity IDE client. Developers are caught between:
-   - **Gemini 4 Argon**: A notorious *"Quota Assassin"* whose extended thinking tokens burn through monthly subscription caps in minutes.
-   - **Gemini 3.8 Flash**: Fast and cheap, but fundamentally underpowered for nuanced multi-file refactoring and architectural reasoning.
-2. **Untapped Google Cloud Jules Quota**: Subscribers of **Google Ultra** possess generous allowances for **Google Cloud Jules** (which natively runs Gemini 3.1 Pro in cloud VMs). Yet, Antigravity provides zero native integration to dispatch workloads to Jules, leaving massive compute resources idle.
-3. **Context Window Pollution**: Raw compilation dumps, failing test traces, and trial-and-error attempts quickly pollute the conversation context, leading to model degradation and hallucinations.
-4. **Source Code Corruption**: Single-agent assistants mutate live production files directly, leading to broken syntax, deleted functions, and uncommitted git nightmares.
-5. **Repetitive Anti-Patterns**: Without structured negative knowledge, models repeatedly suggest dead-end solutions previously proven defective.
-
-### Feature Comparison
-
-| Capability | Standard Antigravity | With `agy-disciple` |
-| :--- | :--- | :--- |
-| **Model Strategy** | 4 Argon (Expensive) or 3.8 Flash (Weak) | **Dual Engine**: Local Native Dev + **Cloud Jules (Gemini 3.1 Pro)** |
-| **Quota Consumption** | Drains expensive local IDE thinking tokens | **Zero Local Token Cost** when offloading to Cloud Jules |
-| **Code Modification** | In-place direct mutation (High risk of breakage) | **Draft Suffix Isolation** (`*_task_<id>.*`) with `.bak` rollback |
-| **Task Management** | Ephemeral memory in chat history | **Data-driven Kanban** via FastMCP & Markdown fallback |
-| **Failure Avoidance** | Blind trial-and-error repetitions | **Graveyard Radar (`grave.md`)** audits before proposing solutions |
-| **24/7 Night Shift** | Stops when laptop lid closes or user sleeps | **Unattended Remote Server / Headless Jules Pipeline** with auto-PR |
-| **VCS Baseline Alignment** | Prone to divergent cloud/local baselines | **Git Pre-Flight Sync (`-d`)** with 3-Layer Autonomous Defense |
-
----
-
-## 2. 🏛️ Architecture Overview
-
-`agy-disciple` establishes a clear hierarchical division of labor:
-
-```text
-                       ┌─────────────────────────────────────────┐
-                       │          Lead Architect (Main)          │
-                       │  • Task Breakdown & Confirmation Gate   │
-                       │  • Double KB Audit & Graveyard Radar    │
-                       │  • Data-driven Kanban & DoD Gatekeeper  │
-                       └────────────────────┬────────────────────┘
-                                            │
-          ┌─────────────────────────────────┼─────────────────────────────────┐
-          ▼                                 ▼                                 ▼
-┌───────────────────────────┐   ┌───────────────────────┐   ┌───────────────────────────┐
-│       Dev Sub-Agent       │   │     Merger Agent      │   │       Ops Sub-Agent       │
-│   [Dual Engine Support]   │   │  • Draft File Swap    │   │  • Non-Idempotent Scripts │
-│ ┌───────────────────────┐ │   │  • .bak Atomic Backup │   │  • Mandatory Command Dict │
-│ │ Engine A: Native Dev  │ │──►│  • Zero Logic Polish  │   │  • Host Deploy & Mutagen  │
-│ ├───────────────────────┤ │   └───────────────────────┘   └───────────────────────────┘
-│ │ Engine B: Cloud Jules │ │
-│ └───────────────────────┘ │
-└───────────────────────────┘
-```
-
-### The Engineering Squad
-
-1. **Lead Architect (Main Session)**: High-level system design, user communication, task decomposition, knowledge governance, and Definition-of-Done (DoD) verification.
-2. **Dev Sub-Agent ([agents/dev.yaml](agents/dev.yaml))**:
-   - **Engine A (Native Dev)**: Sandboxed local coding and test suite authoring.
-   - **Engine B (Google Jules Dev)** ([agents/jules-dev.yaml](agents/jules-dev.yaml)): Offloaded to Google Cloud Jules running **Gemini 3.1 Pro** in dedicated cloud VMs.
-3. **Merger Sub-Agent ([agents/merger.yaml](agents/merger.yaml))**: Creates `.bak` backups and executes atomic file swapping once draft verification passes.
-4. **Ops Sub-Agent ([agents/ops.yaml](agents/ops.yaml))**: Executes production packaging, cross-workspace file transfers, and deployments with strict command-log tracking.
-
----
-
-## 3. ⚡ Core Capabilities
-
-### 1. Jules Cloud Delegation & Quota Arbitrage (Gemini 3.1 Pro)
-- **Arbitrage Advantage**: Leverage your high-volume Google Ultra Jules quotas to execute heavy development while **preserving your local Antigravity 4 Argon balance at zero cost**!
-- **Gemini 3.1 Pro Empowerment**: Reclaim the workhorse reasoning engine that outperforms 3.8 Flash in cross-file refactoring and edge-case handling.
-- **Git Pre-Flight Synchronization (`-d <dir>`)**: Automatically inspects working trees before dispatch, commits dirty state, pulls, rebases, and pushes to ensure cloud VMs start with an aligned baseline.
-- **3-Layer Autonomous Defense (`--autonomous`)**:
-  - *Defense 1 (Plan Suppression)*: Disables `requirePlanApproval` during session initialization to prevent unwanted pauses.
-  - *Defense 2 (Plan Auto-Approval)*: Intercepts `AWAITING_PLAN_APPROVAL` states via REST API and automatically approves.
-  - *Defense 3 (Auto-Feedback Directives)*: Intercepts `AWAITING_USER_FEEDBACK` queries and issues directive resolution prompts (up to 3 times) to prevent pipeline stalls.
-- **Out-of-the-Box Native Default**: All modes default to native local/remote `dev` agents; Jules is triggered **only upon explicit user request** (e.g. *"Dispatch this to jules dev"*).
-
-### 2. Draft Suffix Isolation (Zero Source Corruption)
-Local `dev` sub-agents are strictly forbidden from modifying production files directly.
-- **Draft Pattern**: All edits produce suffixed files (e.g., `router_task_auth_001.py`).
-- **100% IDE Native**: Preserves exact extensions for autocomplete, syntax linting, and type checking.
-- **Atomic Rollback**: If tests fail, the draft is cleanly deleted without affecting working code.
-
-### 3. Double Knowledge Base Audit & Graveyard Radar
-- **Active Knowledge (`kb/knowledge.md`)**: Single Source of Truth for verified architectures, API schemas, and environment configs.
-- **Graveyard Radar (`kb/graveyard/grave.md`)**: Catalogs negative knowledge (anti-patterns, failed implementations, dead ends).
-- **Pre-Presentation Audit**: The Lead Architect automatically scans the Graveyard before proposing any plan to guarantee known failure modes are never repeated.
-
-### 4. Data-Driven FastMCP Kanban Board
-- **MCP Preferred**: Connects to the bundled FastMCP server ([mcp/kanban-task-manager/](mcp/kanban-task-manager/)) for status validation and clickable conversation deep-links (`conversation://<uuid>`).
-- **Native Fallback**: Seamlessly falls back to managing markdown cards in `tasks/*.md` when running without MCP.
-
-### 5. 24/7 Unattended Night Shift & Smart Mutagen Sync
-- **Night Shift Protocol**: Transition ongoing sessions into overnight autonomous mode. Runs in terminal multiplexer tabs (Zellij/tmux) or Jules cloud pipelines with automatic pull request creation.
-- **Smart Mutagen Inspector**: Automatically identifies project technology stacks (Go, Node, Python, Rust, Ruby, JVM, Wails desktop) and configures optimal ignore patterns.
-
----
-
-## 4. 🚦 Quick Start
-
-### Environment Health Check
-
-Before beginning, run the built-in diagnostic tool to audit your local dependencies:
-
+Run the environment doctor anytime to verify your prerequisites:
 ```bash
 python configure.py --doctor
 ```
-
----
 
 ### Option A: Standalone / Local-First Mode (Default)
+**Best for**: Solo developers and teams working directly inside the Antigravity IDE who want local sub-agents or local Jules cloud offloading.
 
-> **Best for**: Developers working directly in the Antigravity IDE on their local machine.
+1. **Prerequisites Installation (Direct Commands)**:
+   * **Base Environment (Git & Python)**:
+     ```bash
+     # macOS
+     brew install git python
+     # Ubuntu / Debian
+     sudo apt update && sudo apt install -y git python3 python3-pip
+     ```
+   * *(Optional for Jules Cloud Dev & Quota Arbitrage)*:
+     ```bash
+     # 1. Install official Jules CLI
+     npm install -g @google/jules
 
-#### Step 1: Install Prerequisites
+     # 2. Authenticate (Choose either):
+     jules login   # Recommended: One-click browser login
+     # Or export your API key (persist in ~/.bashrc or ~/.zshrc):
+     export JULES_API_KEY="your-api-key"
 
-```bash
-# macOS
-brew install git python
-# Ubuntu / Debian
-sudo apt update && sudo apt install -y git python3 python3-pip
-```
-
-*(Optional: For Google Jules cloud delegation)*:
-```bash
-npm install -g @google/jules
-jules login  # Browser authentication (or: export JULES_API_KEY="your-api-key")
-brew install gh  # Optional: for automated PR merge
-```
-
-*(Optional: For FastMCP Kanban)*:
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-# Or via pip: pip install mcp pyyaml
-```
-
-#### Step 2: Install Plugin
-
-```bash
-# Global Antigravity plugin installation:
-cd ~/.gemini/config/plugins/
-git clone https://github.com/catclever/agy-disciple.git
-```
-*(Or clone into `.agents/plugins/agy-disciple` for project-scoped installation).*
-
-#### Step 3: Configure Preset
-
-```bash
-cd agy-disciple
-python configure.py --preset=standalone
-```
-
-#### Step 4: Start Developing
-
-Launch Antigravity IDE. You can now chat naturally with your Lead Architect:
-- *"Break down the user authentication feature and dispatch it to dev."*
-- *"Dispatch this large database refactoring task to jules dev."*
-
----
-
-### Option B: Remote Server Mode (Headless 24/7 Pipeline)
-
-> **Best for**: Power users with a dedicated remote machine (Linux server, Mac mini, or cloud VPS) for 24/7 unattended autonomous development.
-
-#### Step 1: Configure Remote Host (`~/.ssh/config`)
-
-```ssh-config
-Host my-server
-    HostName 192.168.1.100
-    User root
-    IdentityFile ~/.ssh/id_rsa
-```
-
-#### Step 2: Install Server Dependencies
-
-```bash
-# Run on the remote server:
-# 1. Install Zellij multiplexer
-sudo apt update && sudo apt install -y zellij || cargo install --locked zellij
-# 2. Authenticate agy CLI
-agy auth login
-# 3. Authenticate Jules CLI
-npm install -g @google/jules && jules login
-```
-
-#### Step 3: Activate Server Preset
-
-```bash
-python configure.py --preset=server-centralized
-```
-
-#### Step 4: Dispatch Tasks
-
-Tasks can be dispatched automatically via conversation or invoked from the CLI:
-
-```bash
-# Trigger Jules autonomous pipeline via SSH Heredoc (with pre-flight sync & autonomous defense):
-ssh my-server 'bash -s' << 'EOF'
-bash scripts/watchdogs/jules_watchdog.sh \
-  -t auth_001 \
-  -r owner/repo \
-  -p 'Fix concurrency deadlock in user sessions' \
-  -d /path/to/project \
-  --autonomous \
-  --auto-merge
-EOF
-
-# Or dispatch to resident agy agent session:
-bash scripts/watchdogs/pve_watchdog.sh -t auth_001 -a dev -d /path/to/project -p "Implement Redis cache" -h my-server
-```
+     # 3. (Optional) Install GitHub CLI for automated PR merges
+     brew install gh   # macOS
+     # sudo apt install -y gh  # Linux
+     ```
+   * *(Optional for Kanban FastMCP Server)*:
+     ```bash
+     # Recommended: Install uv
+     curl -LsSf https://astral.sh/uv/install.sh | sh
+     # Alternative: Install via pip
+     pip install mcp pyyaml
+     ```
+2. **Install Plugin**:
+   ```bash
+   cd ~/.gemini/config/plugins/
+   git clone https://github.com/catclever/agy-disciple.git
+   ```
+   *(Or clone into your project's `.agents/plugins/agy-disciple`)*.
+3. **Configure Environment**:
+   ```bash
+   cd agy-disciple
+   python configure.py --preset=standalone
+   ```
+4. **Start Developing**:
+   Open Antigravity IDE. The plugin is now ready to use. You can chat naturally in the Antigravity dialog. For example:
+   * *"Help me break down the auth feature and delegate to dev"*
+   * *"Dispatch this refactor to jules dev"*
 
 ---
 
-## 5. 🎛️ Preset Switcher (`configure.py`)
+### Option B: Remote Server Mode (Remote Server & Jules Autonomous Mode)
+**Best for**: Power users with a dedicated remote machine (Linux server, Mac mini, homelab host, or cloud VPS) for unattended 24/7 background development.
 
-`agy-disciple` includes an automated configuration manager to toggle between architectures:
+1. **Prerequisites & Configuration (Direct Commands)**:
+   * **Step 1: Configure SSH Alias (`~/.ssh/config`)**:
+     ```ssh-config
+     Host my-server
+         HostName 192.168.1.100       # Server IP or hostname
+         User root                    # Login username
+         IdentityFile ~/.ssh/id_rsa   # Private key path
+     ```
+     Verify connection: `ssh my-server`
+   * **Step 2: Install Terminal Multiplexer (Zellij) on the Server**:
+     ```bash
+     # Run on the remote server:
+     # Linux (Ubuntu / Debian / CentOS)
+     sudo apt update && sudo apt install -y zellij || cargo install --locked zellij
+     # macOS (if using a Mac mini as a build host)
+     brew install zellij
+     ```
+   * **Step 3: Install & Authenticate agy CLI on the Server**:
+     ```bash
+     # Run on the remote server: install Antigravity CLI and log in
+     agy auth login
+     ```
+   * **Step 4: Install & Authenticate Jules on the Server**:
+     ```bash
+     # Run on the remote server:
+     npm install -g @google/jules
+     jules login
+     # Or export API key directly to shell profile:
+     echo 'export JULES_API_KEY="your-api-key"' >> ~/.bashrc && source ~/.bashrc
+     ```
+2. **Activate Server Preset**:
+   ```bash
+   python configure.py --preset=server-centralized
+   ```
+3. **Configure & Dispatch Watchdogs**:
+   Watchdog scripts are located under `scripts/watchdogs/`. They support dual-track execution: **fully autonomous agent delegation** or **manual command-line invocation**:
+   * **Setup & Placement**:
+     * Ensure scripts on your local machine or server are marked executable:
+       ```bash
+       chmod +x scripts/watchdogs/*.sh
+       ```
+     * *(Optional)*: Symlink watchdogs to your global PATH or script directory (e.g. `~/.gemini/config/scripts/`) for effortless invocation anywhere.
+   * **Execution Method 1: Autonomous Agent Delegation (Recommended)**:
+     No manual commands required. When chatting inside Antigravity, the Lead Architect and `night-shift` / `pve-dispatch` skills will **automatically invoke and monitor the watchdogs in the background**:
+     * *"When I sign off tonight, offload this data export module to run on the server, and auto-merge when verified"*
+     * *"Dispatch this refactor to remote server Jules for overnight autonomous pipeline development"*
+   * **Execution Method 2: Manual Terminal or CI Pipeline Invocation (Alternative)**:
+     Developers can also invoke the watchdogs directly from the terminal for debugging or CI/CD pipelines:
+     ```bash
+     # Option A: Trigger Jules autonomous cloud pipeline via remote server (with pre-flight sync & autonomous defense)
+     ssh my-server 'bash -s' << 'EOF'
+     bash scripts/watchdogs/jules_watchdog.sh \
+       -t auth_001 \
+       -r owner/repo \
+       -p 'Fix concurrency bug' \
+       -d /path/to/project \
+       --autonomous \
+       --auto-merge
+     EOF
+
+     # Option B: Dispatch to remote server's resident agy agent session
+     bash scripts/watchdogs/pve_watchdog.sh -t auth_001 -a dev -d /path/to/project -p "Implement Redis cache" -h my-server
+     ```
+
+---
+
+## 3. ⚡ Core Capabilities (What agy-disciple Delivers)
+
+### ★ 1. Jules Remote Dev & Quota Arbitrage (Gemini 3.1 Pro Empowerment)
+* **The Commercial Reality (Unfiltered)**:
+  * Google deliberately removed the workhorse **Gemini 3.1 Pro** from the Antigravity client to accelerate paid monetization;
+  * Users inside Antigravity are left stranded between **Gemini 4 Argon (a notorious "Quota Assassin" with extreme thinking token consumption)** and **Gemini 3.8 Flash (affordable, but repeatedly falls short of 3.1 Pro on multi-step architectural logic)**;
+  * Meanwhile, developers on Google Ultra subscriptions have access to **copious, high-volume Google Cloud Jules quotas** that are completely locked out of Antigravity's native IDE workflow!
+* **The agy-disciple Arbitrage Advantage**:
+  * **Exploit Free/Ultra Cloud Quotas**: Offload heavy implementation tasks to Google Cloud Jules, draining your generous Ultra allowance while **keeping your local Antigravity 4 Argon token balance at zero cost**!
+  * **Reclaim True Gemini 3.1 Pro Intelligence**: Jules natively operates on **Gemini 3.1 Pro**, crushing 3.8 Flash in cross-file refactoring, dependency tracking, and nuanced unit test generation.
+  * **Dual Jules Topologies (Your Choice)**:
+    * *Local-First Mode*: Runs Jules locally via `scripts/watchdogs/jules_watchdog.sh` using your local `$JULES_API_KEY`.
+    * *Remote Server Mode*: Dispatches Jules to run on your remote server (Linux / Mac mini / Cloud VPS) as an unattended 24/7 background watchdog.
+  * **Git Pre-Flight Synchronization (`-d <dir>`)**: Automatically inspects working tree changes before dispatch, commits dirty state, fetches remote changes, rebases on divergence, and pushes to ensure cloud and local codebases are 100% aligned;
+  * **3-Layer Autonomous Defense System (`--autonomous`)**:
+    * *Defense 1 (Plan Suppression)*: Injects `requirePlanApproval=false` during session creation to bypass plan approval stops;
+    * *Defense 2 (Plan Auto-Approval)*: Intercepts `AWAITING_PLAN_APPROVAL` states during polling and calls the `:approvePlan` endpoint to authorize execution;
+    * *Defense 3 (Auto-Feedback Directives)*: Intercepts `AWAITING_USER_FEEDBACK` queries and issues directive instructions via `:sendMessage` to unblock stalled agents (up to 3 times);
+  * **Automated Cloud PRs**: Jules executes inside cloud VMs and submits clean Pull Requests directly to GitHub, supporting automatic squash merging via `gh pr merge --squash`;
+  * **Default Native Out-of-the-Box, Jules on Explicit Demand**: All modes **default to local/remote native `dev` / `agy` agents** (working instantly with zero extra setup or external cloud subscriptions); the Lead Architect dispatches to Google Cloud Jules **only when you explicitly ask for it** (e.g., *"Dispatch this refactor to jules dev"* or *"Run this with jules"*).
+
+### 2. Draft Suffix Isolation (Draft Suffix Rule)
+When the local `dev` agent modifies code, it is strictly forbidden from touching original files. It generates task-suffixed drafts (e.g. `api_task_auth_001.py`):
+* **100% IDE Native**: Preserves exact file extensions so syntax highlighting, linting, and autocomplete remain fully functional.
+* **Zero Corruption**: Source files are never broken during trial-and-error attempts.
+* **Atomic Rollback**: If a proposal fails verification, the draft is discarded without touching working trees.
+
+### 3. Double Knowledge Base Audit & Graveyard Radar
+* **Active Knowledge (`kb/knowledge.md`)**: Single Source of Truth for verified architectures, DB schemas, and API contracts.
+* **Anti-Pattern Graveyard (`kb/graveyard/grave.md`)**: Systematically catalogs **negative knowledge** (failed approaches, dead ends, and post-mortems).
+* **Pre-Presentation Radar**: Before presenting any solution to the user, the Lead Architect automatically scans the Graveyard to ensure historically failed attempts are never repeated.
+
+### 4. Adaptive Kanban Engine
+* **MCP Preferred**: Automatically leverages the bundled `kanban-task-manager` MCP server when available, providing strict enum validations and clickable session deep-links (`conversation://<uuid>`).
+* **Native Fallback**: Gracefully falls back to managing Markdown task cards in `tasks/*.md` without requiring any external MCP setup.
+
+---
+
+## 4. 🏛️ Core Architecture
+
+```
+                       ┌────────────────────────────────┐
+                       │     Lead Architect (Main)      │
+                       │  • Task Breakdown & Plan Gate  │
+                       │  • Double KB Audit & Graveyard │
+                       │  • Kanban Board & DoD Gate     │
+                       └───────────────┬────────────────┘
+                                       │
+         ┌─────────────────────────────┼─────────────────────────────┐
+         ▼                             ▼                             ▼
+┌─────────────────────────┐   ┌─────────────────┐           ┌─────────────────┐
+│     Dev Sub-Agent       │   │  merger Agent   │           │    ops Agent    │
+│  [Dual Engine Support]  │   │ • Atomic Backup │           │ • Non-Idempotent│
+│ ┌─────────────────────┐ │   │ • Safe Renaming │           │ • Command Dict  │
+│ │ A: Native IDE (dev) │ │──►│ • Zero Logic    │           │ • Host Scripts  │
+│ ├─────────────────────┤ │   └─────────────────┘           └─────────────────┘
+│ │ B: Jules (3.1 Pro)  │ │
+│ └─────────────────────┘ │
+└─────────────────────────┘
+```
+
+### The Squad
+1. **Lead Architect (Main Agent)**: High-level system design, plan formulation, two-track user confirmation, and Definition-of-Done (DoD) gatekeeping.
+2. **Dev Sub-Agent**:
+   * **Engine A (Native `dev`)** ([agents/dev.yaml](agents/dev.yaml)): Local sandboxed coding and unit tests.
+   * **Engine B (Google Jules `jules-dev`)** ([agents/jules-dev.yaml](agents/jules-dev.yaml)): Google Cloud Jules cloud worker running **Gemini 3.1 Pro** with zero Antigravity token cost.
+3. **Merger Sub-Agent ([agents/merger.yaml](agents/merger.yaml))**: Creates `.bak` backups and swaps draft files into production.
+4. **Ops Sub-Agent ([agents/ops.yaml](agents/ops.yaml))**: Executes production scripts, deployments, and packaging with mandatory command dictionary logging.
+
+---
+
+## 5. 🎛️ Dual-Mode System & Mode Switcher
+
+`agy-disciple` provides seamless switching between local and server setups:
 
 ```bash
-# Display current active preset mapping
+# Check current active configuration
 python configure.py --status
 
-# Run full system diagnostics
+# Diagnose environment prerequisites
 python configure.py --doctor
 
-# Set Standalone Local Preset (Local dev + In-repo metadata)
+# Apply default standalone / in-repo preset
 python configure.py --preset=standalone
 
-# Set Remote Server Preset (Remote dev + Centralized metadata)
+# Apply server-centralized / remote server preset
 python configure.py --preset=server-centralized
-
-# Fine-grained control:
-python configure.py --topology=server    # Switch topology (local | server)
-python configure.py --meta=centralized   # Switch metadata (in-repo | centralized)
 ```
 
 ---
 
-## 6. 🧭 Production Watchdogs & Automation
+## 6. 🧭 File Placement & MCP Setup Guide
 
-Watchdog scripts live in `scripts/watchdogs/` and power headless execution:
+### 1. Where do MCP Servers go?
+* **Bundled Location**: The task manager MCP lives inside [mcp/kanban-task-manager/server.py](mcp/kanban-task-manager/server.py).
+* **Global Registration**: Add to `~/.gemini/config/mcp_config.json`:
+  ```json
+  {
+    "mcpServers": {
+      "kanban-task-manager": {
+        "command": "uv",
+        "args": [
+          "run",
+          "/absolute/path/to/agy-disciple/mcp/kanban-task-manager/server.py"
+        ]
+      }
+    }
+  }
+  ```
+* **UI Alternative**: Add via Antigravity IDE: **... > MCP Servers > Add Server**.
 
-- **`jules_watchdog.sh`**:
-  - Handles Google Cloud Jules session lifecycle via REST API / CLI.
-  - Implements **Git Pre-Flight Sync (`-d`)** and the **3-Layer Autonomous Defense System (`--autonomous`)**.
-  - Polls session state and triggers auto-squash PR merge via `gh pr merge --squash`.
-- **`pve_watchdog.sh`**:
-  - Manages remote agent execution in dedicated Zellij tabs.
-  - Monitors `/tmp/<Task_ID>.signal` for non-blocking asynchronous wakeup.
-
-```bash
-chmod +x scripts/watchdogs/*.sh
-```
+### 2. Where do Custom Scripts go?
+* **Repository Scripts**: All helper scripts are located under `scripts/`:
+  - `scripts/watchdogs/jules_watchdog.sh`: Google Cloud Jules dispatcher.
+  - `scripts/watchdogs/pve_watchdog.sh`: Remote server SSH/agy dispatcher.
+  - `scripts/meta_resolver.py`: Centralized metadata path locator.
+* **Global Symlinks (Optional)**:
+  ```bash
+  mkdir -p ~/.gemini/config/scripts
+  ln -sf $(pwd)/scripts/watchdogs/jules_watchdog.sh ~/.gemini/config/scripts/
+  ln -sf $(pwd)/scripts/watchdogs/pve_watchdog.sh ~/.gemini/config/scripts/
+  ```
 
 ---
 
-## 7. 📁 Repository Structure
+## 7. 📁 Repository Structure & License
 
 ```text
 agy-disciple/
 ├── plugin.json                 # Antigravity plugin manifest
-├── configure.py                # Preset switcher & doctor diagnostics
 ├── README.md                   # English documentation
-├── README_zh.md                # 简体中文说明文档
+├── README_zh.md                # 简体中文文档
 ├── LICENSE                     # MIT License
+├── configure.py                # Preset switcher & environment doctor (--doctor)
 │
-├── agents/                     # Sub-Agent prompt specifications
-│   ├── dev.yaml                # Native Dev Agent (Draft suffix & sandbox tests)
+├── agents/                     # Sub-Agent definitions
+│   ├── dev.yaml                # Native Dev Agent (draft suffix & sandbox)
 │   ├── jules-dev.yaml          # Google Cloud Jules Dev Agent (Gemini 3.1 Pro)
-│   ├── merger.yaml             # Merger Agent (Atomic .bak backup & file swap)
-│   └── ops.yaml                # Ops Agent (Safe execution & command dictionary)
+│   ├── merger.yaml             # Merger Agent (backup & file swap)
+│   └── ops.yaml                # Ops Agent (script safety & command logging)
 │
-├── skills/                     # Modular engineering skills
-│   ├── dev-manager/            # Dev engine orchestration (Local vs Server)
-│   ├── project-manager/        # Metadata & task tracking (In-repo vs Centralized)
+├── skills/                     # Modular skills library
+│   ├── dev-manager/            # Development orchestration (local / server)
+│   ├── project-manager/        # Project metadata & task boards (in-repo / centralized)
 │   ├── task-breakdown/         # Task decomposition & two-track confirmation
 │   ├── extract-knowledge/      # Knowledge extraction & Graveyard radar
-│   ├── ops-manager/            # Operational script execution & tracking
-│   ├── test-environment/      # Dev server & runtime preview management
-│   ├── night-shift/            # Autonomous overnight handoff protocol
-│   ├── pve-dispatch/           # Remote SSH execution routing
+│   ├── ops-manager/            # Operational script execution
+│   ├── test-environment/      # Test servers and preview management
+│   ├── night-shift/            # Autonomous unattended task handoff
+│   ├── pve-dispatch/           # Remote SSH task dispatch
 │   └── setup-mutagen/          # Smart language detection & Mutagen sync
 │
-├── mcp/                        # Model Context Protocol tools
-│   └── kanban-task-manager/    # Standalone FastMCP task board server
+├── mcp/                        # Bundled MCP server
+│   └── kanban-task-manager/    # Standalone FastMCP task board
 │
 └── scripts/
-    ├── watchdogs/              # Production background watchdogs
-    │   ├── jules_watchdog.sh   # Autonomous Google Jules cloud watchdog
+    ├── watchdogs/              # Production watchdog dispatchers
+    │   ├── jules_watchdog.sh   # Google Cloud Jules autonomous watchdog
     │   └── pve_watchdog.sh     # Remote SSH / agy CLI watchdog
     └── meta_resolver.py        # Centralized metadata path resolver
 ```
 
----
-
-## 8. 🤝 Contributing
-
-Contributions, feature requests, and bug reports are welcome!
-
-1. Fork the Project: `git clone https://github.com/catclever/agy-disciple.git`
-2. Create your Feature Branch: `git checkout -b feat/amazing-feature`
-3. Commit your Changes: `git commit -m 'feat: add amazing feature'`
-4. Push to the Branch: `git push origin feat/amazing-feature`
-5. Open a Pull Request
-
----
-
-## 9. 📄 License
-
-Distributed under the **MIT License**. See [LICENSE](LICENSE) for more information.
-
-<div align="center">
-
-Made with ❤️ for the **Google Antigravity** community.
-
-</div>
+This project is licensed under the [MIT License](LICENSE).
