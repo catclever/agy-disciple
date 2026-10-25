@@ -1,315 +1,363 @@
 # agy-disciple 🚀
 
-[English](README.md) | [简体中文](README_zh.md)
+<div align="center">
+
+**面向 Google Antigravity (AGY) 的工业级多智能体协同研发团队插件**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![GitHub Stars](https://img.shields.io/github/stars/catclever/agy-disciple?style=flat&color=yellow)](https://github.com/catclever/agy-disciple/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/catclever/agy-disciple?style=flat&color=orange)](https://github.com/catclever/agy-disciple/network/members)
+[![GitHub Issues](https://img.shields.io/github/issues/catclever/agy-disciple?style=flat&color=red)](https://github.com/catclever/agy-disciple/issues)
 [![Antigravity](https://img.shields.io/badge/Antigravity-Plugin-purple.svg)](https://antigravity.google)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/catclever/agy-disciple/pulls)
 
-> **面向 Google Antigravity (AGY) 的工业级多智能体协同研发团队插件**  
-> 将单打独斗的 AI 助手转变为分工严谨、纪律完备的专业研发小队：主架构师、研发（支持本地与 Google Jules 双引擎）、合并与运维。
+[English](README.md) | [简体中文](README_zh.md)
 
----
-
-## 1. 📖 项目概述 (Overview)
-
-传统的 AI 辅助编程通常采用“单单对话”模式。当开发者面对大型特性或复杂重构时，往往会遭遇几大致命瓶颈：
-* **Google 的商业变现与模型断层**：Google 为了商业变现，在 Antigravity 客户端中直接砍掉了兼顾智商与性价比的 **Gemini 3.1 Pro**，只留下了 **Gemini 4 Argon（真正的“额度刺客”，深度思考 Token 极速烧穿配额）** 和 **Gemini 3.8 Flash（轻量廉价，但在复杂代码与重构推理上依然打不过 3.1 Pro）**。本地配额极易被重体力代码编写消耗殆尽；
-* **沉睡的 Jules 宝藏无法利用**：许多开发者订阅了 Google Ultra ，账户里躺着大量极其充沛的 **Google Cloud Jules 额度**，但在 Antigravity 客户端内却**完全无法直接调用**，造成了巨大的算力闲置；
-* **主会话上下文严重污染**：编译日志、单元测试报错和试错过程挤满上下文，迅速导致后续推理智商退化；
-* **源码遭到意外破坏**：单 Agent 直接在原文件上大面积修改，极易导致语法破坏或关键逻辑丢失；
-* **重复踩坑死循环**：缺乏负面知识沉淀，AI 在不同会话中往往反复尝试已被证实不可行的死胡同方案。
-
-`agy-disciple`（**Antigravity 门徒**）通过**层级化多智能体工程工作流**破局：将本地会话塑造为沉稳调度全局的**主架构师**，直接打通这堵商业高墙——把具体重体力代码开发无缝分派给搭载了 **Gemini 3.1 Pro** 的 Google Cloud Jules，**充分利用 Ultra 订阅中充沛的 Jules 专属额度**，完全不烧本地 Antigravity 宝贵的 Token，并由草稿隔离法、双重知识库审查与数据看板提供全流程防错保护。
+</div>
 
 ---
 
-## 2. 🚦 快速开始 (Quick Start)
+> **将单打独斗的 AI 助手转变为分工严谨、纪律完备的专业研发工程小队：**  
+> **主架构师** 🏛️ &nbsp;•&nbsp; **研发智能体 (Dev)** 💻 &nbsp;•&nbsp; **代码合并器 (Merger)** 🔀 &nbsp;•&nbsp; **运维智能体 (Ops)** ⚙️
 
-随时可通过内置的环境体检工具查看系统环境：
+---
+
+## 📑 目录导航
+
+- [1. 为什么选择 agy-disciple？](#1-为什么选择-agy-disciple)
+  - [痛点直击：单智能体研发瓶颈](#痛点直击单智能体研发瓶颈)
+  - [核心能力对比表](#核心能力对比表)
+- [2. 🏛️ 团队架构概览](#2-️-团队架构概览)
+  - [专业研发工程小队](#专业研发工程小队)
+- [3. ⚡ 五大核心王牌能力](#3--五大核心王牌能力)
+  - [1. Jules 云端研发与算力套利 (Gemini 3.1 Pro 赋能)](#1-jules-云端研发与算力套利-gemini-31-pro-赋能)
+  - [2. 草稿后缀隔离法 (源码零破坏)](#2-草稿后缀隔离法-源码零破坏)
+  - [3. 双重知识库审查与死胡同雷达 (Graveyard Radar)](#3-双重知识库审查与死胡同雷达-graveyard-radar)
+  - [4. 数据驱动的 FastMCP 任务看板](#4-数据驱动的-fastmcp-任务看板)
+  - [5. 7x24 小时无人值守夜班与智能 Mutagen 同步](#5-7x24-小时无人值守夜班与智能-mutagen-同步)
+- [4. 🚦 快速开始](#4--快速开始)
+  - [环境健康检查](#环境健康检查)
+  - [模式 A：本地单机模式 (Standalone / Local-First) —— 默认推荐](#模式-a本地单机模式-standalone--local-first--默认推荐)
+  - [模式 B：远端服务器模式 (Remote Server & 离线自主研发)](#模式-b远端服务器模式-remote-server--离线自主研发)
+- [5. 🎛️ 架构预设切换器 (`configure.py`)](#5-️-架构预设切换器-configurepy)
+- [6. 🧭 工业级看门狗与自动化流水线](#6--工业级看门狗与自动化流水线)
+- [7. 📁 仓库代码结构](#7--仓库代码结构)
+- [8. 🤝 参与贡献](#8--参与贡献)
+- [9. 📄 开源许可证](#9--开源许可证)
+
+---
+
+## 1. 为什么选择 agy-disciple？
+
+### 痛点直击：单智能体研发瓶颈
+
+在面对中大型工程或复杂重构时，传统的单 Agent 辅助编程模式暴露出多项致命瓶颈：
+
+1. **Google 的商业变现与模型断层**：Google 为了商业利益，在 Antigravity IDE 客户端中直接下架了表现最为均衡的 **Gemini 3.1 Pro**。开发者被卡在两极之间：
+   - **Gemini 4 Argon**：真正的“额度刺客”，其深度思考 Token 会在短时间内迅速烧穿每月的配额上限；
+   - **Gemini 3.8 Flash**：轻量且便宜，但在处理多文件协同重构和严谨架构推理时，表现显著落后于 3.1 Pro。
+2. **沉睡的 Jules 算力宝藏无法调用**：大量订阅了 **Google Ultra** 的开发者，账户中拥有海量极其充沛的 **Google Cloud Jules 专属额度**（云端原生运行 Gemini 3.1 Pro），但在 Antigravity 客户端内却没有任何官方通道可以直接调用，造成巨大算力闲置浪费。
+3. **主对话上下文严重污染**：编译错误、海量测试堆栈以及反复试错的过程塞满上下文，导致模型后期注意力涣散、智商骤降。
+4. **原生产源码破坏风险**：单一 Agent 直接在生产源文件上试错修改，极易导致语法毁损、逻辑缺失甚至未经提交就丢失可用状态。
+5. **在死胡同里循环踩坑**：由于缺乏对失败经验的系统沉淀，AI 在不同会话中往往反复尝试已被证实不可行的旧方案。
+
+### 核心能力对比表
+
+| 维度对比 | 原生 Antigravity 单 Agent | 搭载 `agy-disciple` 团队插件 |
+| :--- | :--- | :--- |
+| **模型调度策略** | 仅能在 4 Argon（贵）与 3.8 Flash（弱）二选一 | **双引擎自由调度**：本地原生 Dev + **Jules 云端 (Gemini 3.1 Pro)** |
+| **Token 消耗** | 重体力编写消耗高昂的本地 IDE 深度思考配额 | 云端派发直接消耗 Ultra 专属额度，**本地 Token 零消耗** |
+| **代码写入模式** | 原文件直接就地覆写（极易破坏生产源码） | **草稿后缀隔离法** (`*_task_<id>.*`)，辅以 `.bak` 原子回退 |
+| **任务追踪** | 对话流中的临时记忆，刷新或分流即丢失 | **数据驱动看板**（支持 FastMCP 协议及 Markdown 本地双轨降级） |
+| **避坑与经验** | 遗忘失败历史，反复尝试已知不可行方案 | **死胡同雷达 (`grave.md`)** 在提出方案前强制审计，杜绝复错 |
+| **离线研发支持** | 关盖即停、断网即止 | **远端服务器常驻与无头云端流水线**，支持睡醒直接 `git pull` 合并 |
+| **基线对齐保障** | 本地与云端基线易产生分叉冲突 | **Git 预检对齐 (`-d`)** 与 **全自主三重防御体系 (`--autonomous`)** |
+
+---
+
+## 2. 🏛️ 团队架构概览
+
+`agy-disciple` 构建了一套清晰严密、权责分明的层级化工程小队：
+
+```text
+                       ┌─────────────────────────────────────────┐
+                       │          主架构师 (Lead Architect)       │
+                       │  • 任务原子拆解与方案双轨确认门禁       │
+                       │  • 双重知识库审计与死胡同防错雷达       │
+                       │  • 数据看板管理与 Definition-of-Done    │
+                       └────────────────────┬────────────────────┘
+                                            │
+          ┌─────────────────────────────────┼─────────────────────────────────┐
+          ▼                                 ▼                                 ▼
+┌───────────────────────────┐   ┌───────────────────────┐   ┌───────────────────────────┐
+│     研发智能体 (Dev)      │   │    代码合并器 (Merger)  │   │     运维智能体 (Ops)      │
+│   [支持双研发引擎自由调度] │   │  • 草稿安全替换       │   │  • 非幂等/高成本脚本执行   │
+│ ┌───────────────────────┐ │   │  • .bak 原子备份回退  │   │  • 命令执行字典强制记录   │
+│ │ 引擎 A: 本地原生 Dev  │ │──►│  • 纯净替换，不碰业务 │   │  • 宿主机部署与 Mutagen   │
+│ ├───────────────────────┤ │   └───────────────────────┘   └───────────────────────────┘
+│ │ 引擎 B: Jules 云端 VM │ │
+│ └───────────────────────┘ │
+└───────────────────────────┘
+```
+
+### 专业研发工程小队
+
+1. **主架构师 (Lead Architect / 主会话)**：负责高层方案设计、需求拆解、与用户沟通确认、死胡同雷达审查以及交付验收（DoD）把关。
+2. **研发智能体 (Dev Sub-Agent)** ([agents/dev.yaml](agents/dev.yaml))：
+   - **引擎 A (本地原生 Dev)**：在本地沙箱环境内编写代码与单元测试。
+   - **引擎 B (Google Jules Dev)** ([agents/jules-dev.yaml](agents/jules-dev.yaml))：通过看门狗派发至 Google Cloud Jules 云端虚拟机，搭载 **Gemini 3.1 Pro** 纯算力运作。
+3. **代码合并器 (Merger Sub-Agent)** ([agents/merger.yaml](agents/merger.yaml))：在草稿验证通过后，负责生成 `.bak` 备份并执行原子文件替换，确保源码始终可用。
+4. **运维智能体 (Ops Sub-Agent)** ([agents/ops.yaml](agents/ops.yaml))：负责执行多环境代码同步、原生构建打包与发布部署，强制维护全局命令字典。
+
+---
+
+## 3. ⚡ 五大核心王牌能力
+
+### 1. Jules 云端研发与算力套利 (Gemini 3.1 Pro 赋能)
+- **额度套利**：将重体力代码编写无缝分流至 Google Cloud Jules，大量消耗 Ultra 会员内用不完的 Jules 额度，**保护您本地宝贵的 Antigravity 4 Argon 额度不被消耗**！
+- **重拾 3.1 Pro 真正智商**：Jules 原生基于 **Gemini 3.1 Pro** 构建，在大规模跨文件重构与复杂逻辑实现上远超 3.8 Flash。
+- **Git 预检对齐机制 (`-d <dir>`)**：派发前自动检测工作区变动，自动提交未存脏树、拉取远端更新、Rebase 对齐并推送，彻底杜绝本地与云端代码基线不同步问题。
+- **全自主三重防御体系 (`--autonomous`)**：
+  - *防御 1 (规划免审)*：建联阶段注入 `requirePlanApproval=false`，抑制无谓规划卡点；
+  - *防御 2 (方案代签)*：轮询遇 `AWAITING_PLAN_APPROVAL` 时，自动调用 `:approvePlan` 接口批准执行；
+  - *防御 3 (智能代答)*：轮询遇 `AWAITING_USER_FEEDBACK` 质询时，自动调用 `:sendMessage` 发送最佳实践指令打破死锁（上限 3 次）。
+- **开箱即用默认原生，按需显式唤醒**：所有模式**默认始终优先调度本地/服务器的原生 `dev` / `agy` 智能体**（零配置即可运行）；只有当您在对话中显式要求使用 Jules 时（如：“*派发给 jules dev*”），主架构师才会唤醒 Jules 云端研发流水线。
+
+### 2. 草稿后缀隔离法 (源码零破坏)
+本地研发智能体严禁直接碰触原文件：
+- **后缀规则**：所有变更均生成独立任务草稿（例如对 `router.py` 修改生成 `router_task_auth_001.py`）；
+- **IDE 体验无缝保留**：保留完整的文件拓展名，语法高亮、Linter 提示与类型检查完全正常运作；
+- **原子回滚能力**：一旦方案在测试中失败，直接丢弃草稿即可，主干代码毫发无损。
+
+### 3. 双重知识库审查与死胡同雷达 (Graveyard Radar)
+- **正面知识库 (`kb/knowledge.md`)**：收录经过验证的架构图解、数据字典与 API 规范。
+- **死胡同坟场 (`kb/graveyard/grave.md`)**：系统性记录所有失败的尝试、弃用的方案与架构死胡同。
+- **方案提出前置审查**：主架构师在向用户或小弟提出任何实施方案前，必须自动雷达扫描 Graveyard，杜绝历史性错误反复上演。
+
+### 4. 数据驱动的 FastMCP 任务看板
+- **MCP 优先调度**：无缝对接自带的独立 FastMCP 任务看板 ([mcp/kanban-task-manager/](mcp/kanban-task-manager/))，支持严格的任务状态约束与可点击的会话深层链接 (`conversation://<uuid>`)。
+- **纯本地优雅降级**：在未配置 MCP 的环境下，全自动降级为直接管理 `tasks/*.md` Markdown 卡片。
+
+### 5. 7x24 小时无人值守夜班与智能 Mutagen 同步
+- **夜班移交协议 (Night Shift)**：下班或离线前一键将待办任务队列交接给远端复用器（Zellij/tmux）或 Jules 云端流水线，自动在 GitHub 上发起 Pull Request 并可选全自动 Merge。
+- **智能语言生态检查器**：自动识别 Go、Node、Python、Rust、Ruby、JVM 以及 **Wails 桌面端**，自动生成最佳忽略规则，彻底避免打包中间产物回传造成 I/O 拥塞。
+
+---
+
+## 4. 🚦 快速开始
+
+### 环境健康检查
+
+开始前，随时可以执行内置的健康诊断工具审计当前机器依赖：
+
 ```bash
 python configure.py --doctor
 ```
+
+---
 
 ### 模式 A：本地单机模式 (Standalone / Local-First) —— 默认推荐
-**适用对象**：在本地 Antigravity IDE 客户端中直接开发的大多数个人与团队，支持本地 Sub-Agent 与本地直接调用 Jules 云端算力。
 
-1. **前置依赖安装（直接执行命令）**：
-   * **基础运行环境 (Git & Python)**：
-     ```bash
-     # macOS
-     brew install git python
-     # Ubuntu / Debian
-     sudo apt update && sudo apt install -y git python3 python3-pip
-     ```
-   * *(可选，用于 Jules 远程研发与额度套利)*：
-     ```bash
-     # 1. 安装官方 Jules CLI 工具
-     npm install -g @google/jules
+> **适用场景**：绝大多数在本地电脑使用 Antigravity IDE 客户端进行日常编码的个人与团队。
 
-     # 2. 账号认证（二选一）：
-     jules login   # 推荐：浏览器一键登录 Google 账号
-     # 或直接导出 API Key（可写入 ~/.bashrc 或 ~/.zshrc 永久生效）：
-     export JULES_API_KEY="your-api-key"
-
-     # 3. (可选) 安装 GitHub CLI，用于 PR 自动合并
-     brew install gh   # macOS
-     # sudo apt install -y gh  # Linux
-     ```
-   * *(可选，用于任务看板 FastMCP 服务)*：
-     ```bash
-     # 推荐方式：安装 uv 工具
-     curl -LsSf https://astral.sh/uv/install.sh | sh
-     # 备选方式：直接 pip 安装依赖
-     pip install mcp pyyaml
-     ```
-2. **安装插件**：
-   ```bash
-   cd ~/.gemini/config/plugins/
-   git clone https://github.com/catclever/agy-disciple.git
-   ```
-   *(或克隆到具体项目的 `.agents/plugins/agy-disciple` 作为项目专属插件)*。
-3. **配置环境**：
-   ```bash
-   cd agy-disciple
-   python configure.py --preset=standalone
-   ```
-4. **在 Antigravity 中开始开发**：
-   打开 Antigravity IDE，插件现在已经可以直接使用了。您可以在 Antigravity 对话框中自然交互，例如：
-   * *“帮我拆解这个登录功能，派发给 dev 编写草稿”*
-   * *“把这个复杂重构派发给 jules dev”*
-
----
-
-### 模式 B：远端服务器模式 (Remote Server & Jules Autonomous Mode)
-**适用对象**：拥有独立远端服务器（如 Linux 服务器、Mac mini、家用主机或各类云 VPS 等）的用户，用于实现 7x24 小时全天候离线无人值守研发。
-
-1. **前置依赖与环境配置（直接执行命令）**：
-   * **步骤 1：本地 SSH 免密与别名配置 (`~/.ssh/config`)**：
-     ```ssh-config
-     Host my-server
-         HostName 192.168.1.100       # 服务器局域网/公网 IP 或域名
-         User root                    # 登录用户名（或日常账号）
-         IdentityFile ~/.ssh/id_rsa   # 本地私钥路径
-     ```
-     测试免密连接：`ssh my-server`
-   * **步骤 2：在服务器上安装终端复用器 (Zellij)**：
-     ```bash
-     # 在远端服务器上执行：
-     # Linux (Ubuntu / Debian / CentOS)
-     sudo apt update && sudo apt install -y zellij || cargo install --locked zellij
-     # macOS (若将 Mac mini 用作独立构建服务器)
-     brew install zellij
-     ```
-   * **步骤 3：在服务器上安装并认证 agy 命令行版**：
-     ```bash
-     # 在远端服务器上执行：安装 Antigravity CLI 并登录认证
-     agy auth login
-     ```
-   * **步骤 4：在服务器上安装并认证 Jules**：
-     ```bash
-     # 在远端服务器上执行：
-     npm install -g @google/jules
-     jules login
-     # 或直接写入环境变量并生效：
-     echo 'export JULES_API_KEY="your-api-key"' >> ~/.bashrc && source ~/.bashrc
-     ```
-2. **激活服务器预设**：
-   ```bash
-   python configure.py --preset=server-centralized
-   ```
-3. **配置与调度看门狗脚本 (Watchdogs)**：
-   看门狗脚本位于仓库的 `scripts/watchdogs/` 目录下，支持**智能体全自动托管**与**开发者手动执行**双轨调度：
-   * **放置与就位**：
-     * 确保本地或服务器上的脚本已赋予可执行权限：
-       ```bash
-       chmod +x scripts/watchdogs/*.sh
-       ```
-     * *(可选建议)*：将看门狗脚本软链接至用户全局 PATH 或集中式脚本目录（如 `~/.gemini/config/scripts/`），方便随处直接调用。
-   * **运行方式 1：Antigravity 智能体全自动调度（推荐）**：
-     在 Antigravity 对话框中，无需您手动敲命令，主架构师或 `night-shift` / `pve-dispatch` 技能在识别到需要夜间研发或服务器执行时，**会自动在后台远程唤醒并监控看门狗脚本**：
-     * *“今晚下班后，把这个数据导出模块挂到服务器上跑，自测通过后自动合并”*
-     * *“将这个重构任务派发给远端服务器的 Jules 进行夜间自主流水线开发”*
-   * **运行方式 2：终端手动或 CI 流水线直接执行（备用）**：
-     开发者亦可在本地终端直接执行脚本进行调试或集成到自动化流程：
-     ```bash
-     # 方式 A：从本地触发远端服务器派发至 Google Jules 云端流水线 (支持预检与全自主防御)
-     ssh my-server 'bash -s' << 'EOF'
-     bash scripts/watchdogs/jules_watchdog.sh \
-       -t auth_001 \
-       -r owner/repo \
-       -p '修复并发锁漏洞' \
-       -d /path/to/project \
-       --autonomous \
-       --auto-merge
-     EOF
-
-     # 方式 B：派发至服务器常驻的 agy 智能体自执行会话
-     bash scripts/watchdogs/pve_watchdog.sh -t auth_001 -a dev -d /path/to/project -p "实现 Redis 缓存" -h my-server
-     ```
-
----
-
-## 3. ⚡ 核心能力 (What agy-disciple Delivers)
-
-### ★ 1. 核心王牌：Jules 远程研发与额度套利 (Gemini 3.1 Pro 赋能)
-* **痛点直击（拒绝含蓄）**：
-  * Google 为了追求商业利润，在 Antigravity 客户端中移除了最均衡实用的 **Gemini 3.1 Pro**；
-  * 客户端内仅剩 **Gemini 4 Argon（真正的额度刺客，深度思考 Token 极速烧穿账单）** 和 **Gemini 3.8 Flash（廉价但复杂推理依然打不过 3.1 Pro）**；
-  * 与此同时，开通了 Google Ultra 订阅的用户，账户里拥有**极其充沛的 Google Cloud Jules 专属额度**，却因为 Antigravity 官方闭环限制而**根本无法直接在开发中利用**！
-* **破局利器（额度套利与算力解放）**：
-  * **白嫖/唤醒 Ultra 沉睡额度**：通过 `agy-disciple`，将重体力开发任务外包给 Google Cloud Jules，直接榨干 Ultra 赠送的丰富云端配额，**完全不烧本地 Antigravity 昂贵的 4 Argon Token**！
-  * **迎回 Gemini 3.1 Pro 真正智商**：Jules 标配 **Gemini 3.1 Pro**，在跨文件代码重构、架构理解和单元测试上全面碾压 3.8 Flash，代码质量断层领先；
-  * **双部署形态（灵活选择）**：
-    * *单机本地模式*：直接在本地调用 `scripts/watchdogs/jules_watchdog.sh`，读取本地 API Key 并发给 Jules；
-    * *远端服务器模式*：通过 SSH 挂在独立服务器（Linux / Mac mini / 云主机）后台，作为 24 小时不间断的夜班看门狗。
-  * **Git 预检对齐机制 (`-d <dir>`)**：派发前自动检测工作区变动，自动提交未存脏树、拉取远端更新、Rebase 对齐并推送，彻底杜绝本地与云端代码基线不同步问题；
-  * **全自主三重防御体系 (`--autonomous`)**：
-    * *防御 1 (规划免审)*：建联阶段注入 `requirePlanApproval=false`，抑制无谓规划卡点；
-    * *防御 2 (方案代签)*：轮询遇 `AWAITING_PLAN_APPROVAL` 时，自动调用 `:approvePlan` 接口批准执行；
-    * *防御 3 (智能代答)*：轮询遇 `AWAITING_USER_FEEDBACK` 质询时，自动调用 `:sendMessage` 发送最佳实践指令打破死锁（上限 3 次）；
-  * **自动化云端 PR**：Jules 在云端虚拟机中自检代码并直接在 GitHub 上创建 Pull Request，支持配合 `gh pr merge --squash` 实现全自动合并；
-  * **开箱即用默认原生，按需显式唤醒**：所有模式下**默认始终优先调度本地/服务器的原生 `dev` / `agy` 智能体**（零配置即可运行，不强制要求拥有 Ultra 会员或 Jules 凭证）；只有当您在对话中**显式要求**使用 Jules 时（如：“*派发给 jules dev*” 或 “*用 jules 跑*”），主架构师才会唤醒 Jules 云端研发流水线。
-
-### 2. 草稿后缀隔离法 (Draft Suffix Rule)
-本地 `dev` 智能体在修改代码时，被严格禁止直接修改原始源码。所有改动必须创建带任务后缀的独立草稿文件（如 `api_task_auth_001.py`）：
-* **原生 IDE 生态保留**：保持完整文件扩展名，IDE 语法高亮、自动补全、ESLint / Ruff 代码检查不受任何影响；
-* **零污染零破坏**：在自测通过前，原版生产代码处于 100% 保护状态，互不干扰；
-* **极速无损回滚**：如果方案不合格，直接删除草稿即可，工作树完全干净。
-
-### 3. 双重知识库审查与防坑公墓 (Graveyard Radar)
-* **活跃知识库 (`kb/knowledge.md`)**：仅收录已经拍板生效的硬核架构规范、数据表结构 (Schema) 与通信协议；
-* **防坑公墓 (`kb/graveyard/grave.md`)**：专门沉淀**负面知识**（失败方案记录、技术死胡同、根因剖析与避坑教训）；
-* **公墓雷达扫描**：主架构师在向用户汇报或输出方案前，强制触发双重审查，一旦发现方案命中历史公墓，立刻内部重构，彻底杜绝重蹈覆辙。
-
-### 4. 自适应看板引擎 (Adaptive Kanban Engine)
-* **MCP 优先**：如果当前环境已注册配套的 `kanban-task-manager` MCP 服务，享受强状态约束看板与 Antigravity 会话可点击跳转 (`conversation://<uuid>`)；
-* **原生降级 (零配置)**：如果未配置 MCP，主架构师自动平滑降级为读写项目内的 Markdown 任务卡片（`tasks/*.md`），无需任何额外依赖。
-
----
-
-## 4. 🏛️ 核心架构与职责分工 (Core Architecture)
-
-```
-                       ┌────────────────────────────────┐
-                       │      主架构师 (Main Agent)      │
-                       │  • 需求拆解与两轨确认机制      │
-                       │  • 双重知识库审查与公墓雷达    │
-                       │  • 数据看板管理与 DoD 门禁     │
-                       └───────────────┬────────────────┘
-                                       │
-         ┌─────────────────────────────┼─────────────────────────────┐
-         ▼                             ▼                             ▼
-┌─────────────────────────┐   ┌─────────────────┐           ┌─────────────────┐
-│     研发执行智能体      │   │   合并智能体    │           │   运维智能体    │
-│    [双研发引擎支持]     │   │(`merger` Agent) │           │  (`ops` Agent)  │
-│ ┌─────────────────────┐ │   │ • 原子化备份    │           │ • 高成本执行    │
-│ │ 引擎A: 本地 dev     │ │──►│ • 安全替换草稿  │           │ • 强制命令字典  │
-│ ├─────────────────────┤ │   │ • 不含业务逻辑  │           │ • 真实宿主环境  │
-│ │ 引擎B: Jules (3.1P) │ │   └─────────────────┘           └─────────────────┘
-│ └─────────────────────┘ │
-└─────────────────────────┘
-```
-
-### 团队角色
-1. **主架构师 (Lead Architect / Main Agent)**：顶层系统设计、方案确认、任务拆解与最终 DoD 验收。
-2. **研发执行智能体 (Dev Sub-Agent)**：
-   * **引擎 A (本地 `dev`)**（[agents/dev.yaml](agents/dev.yaml)）：在 Antigravity 内部以沙盒草稿模式快速编码与自测；
-   * **引擎 B (Google Jules `jules-dev`)**（[agents/jules-dev.yaml](agents/jules-dev.yaml)）：派发至 Google Cloud Jules 云端 VM，依托 **Gemini 3.1 Pro** 深度思考，不耗费 Antigravity Token。
-3. **合并智能体 (`merger` Sub-Agent)**（[agents/merger.yaml](agents/merger.yaml)）：创建 `.bak` 备份并原子化替换草稿，不包含业务逻辑。
-4. **运维智能体 (`ops` Sub-Agent)**（[agents/ops.yaml](agents/ops.yaml)）：负责执行高成本、非幂等的宿主环境操作，强制核对命令字典。
-
----
-
-## 5. 🎛️ 双模系统与模式切换 (Dual-Mode System)
-
-`agy-disciple` 支持在本地单机与远端服务器之间随时一键切换：
+#### 步骤 1：安装前置依赖
 
 ```bash
-# 查看当前激活状态
-python configure.py --status
+# macOS
+brew install git python
+# Ubuntu / Debian
+sudo apt update && sudo apt install -y git python3 python3-pip
+```
 
-# 诊断本地与远端环境依赖
-python configure.py --doctor
+*(可选：用于调用 Google Jules 云端研发)*：
+```bash
+npm install -g @google/jules
+jules login  # 浏览器授权登录（或 export JULES_API_KEY="your-api-key"）
+brew install gh  # 可选：用于 PR 自动合并
+```
 
-# 切换为默认单机模式 (In-Repo)
+*(可选：用于任务看板 FastMCP 服务)*：
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+# 或直接通过 pip 安装：pip install mcp pyyaml
+```
+
+#### 步骤 2：安装插件
+
+```bash
+# 安装到 Antigravity 全局插件目录：
+cd ~/.gemini/config/plugins/
+git clone https://github.com/catclever/agy-disciple.git
+```
+*(亦可直接克隆到目标项目根目录的 `.agents/plugins/agy-disciple` 作为单项目专用插件)*。
+
+#### 步骤 3：激活预设
+
+```bash
+cd agy-disciple
 python configure.py --preset=standalone
+```
 
-# 切换为服务器模式 (Remote Server / Centralized)
+#### 步骤 4：在 Antigravity 中开始开发
+
+打开 Antigravity IDE，插件已就绪。在对话框中自然交流即可调度团队：
+- *“帮我拆解用户注册登录模块，派发给 dev 编写草稿”*
+- *“将这个复杂的跨文件重构派发给 jules dev”*
+
+---
+
+### 模式 B：远端服务器模式 (Remote Server & 离线自主研发)
+
+> **适用场景**：拥有常驻远端服务器（Linux 主机、Mac mini 或各类云服务器）的用户，实现全天候离线无人值守开发。
+
+#### 步骤 1：配置 SSH 免密登录 (`~/.ssh/config`)
+
+```ssh-config
+Host my-server
+    HostName 192.168.1.100
+    User root
+    IdentityFile ~/.ssh/id_rsa
+```
+
+#### 步骤 2：在服务器安装依赖
+
+```bash
+# 在远端服务器上执行：
+# 1. 安装 Zellij 终端复用器
+sudo apt update && sudo apt install -y zellij || cargo install --locked zellij
+# 2. 登录认证 agy 命令行版
+agy auth login
+# 3. 登录认证 Jules 命令行版
+npm install -g @google/jules && jules login
+```
+
+#### 步骤 3：激活服务器预设
+
+```bash
 python configure.py --preset=server-centralized
 ```
 
----
+#### 步骤 4：调度看门狗脚本
 
-## 6. 🧭 MCP 服务与脚本放置规范指南
+看门狗可通过对话自然调度，亦可在终端直接执行：
 
-### 1. MCP 看板服务放哪里？
-* **仓库内源码**：自带的 FastMCP 看板服务源码位于 [mcp/kanban-task-manager/server.py](mcp/kanban-task-manager/server.py)。
-* **全局注册**：在全局配置文件 `~/.gemini/config/mcp_config.json` 注册：
-  ```json
-  {
-    "mcpServers": {
-      "kanban-task-manager": {
-        "command": "uv",
-        "args": [
-          "run",
-          "/绝对路径/agy-disciple/mcp/kanban-task-manager/server.py"
-        ]
-      }
-    }
-  }
-  ```
-* **界面添加方式**：亦可在 Antigravity IDE 右上角 **... (More) > MCP Servers > Add Server** 中填入上述命令。
+```bash
+# 方式 A：通过 SSH Heredoc 派发至 Google Jules 云端流水线 (支持预检与全自主防御)
+ssh my-server 'bash -s' << 'EOF'
+bash scripts/watchdogs/jules_watchdog.sh \
+  -t auth_001 \
+  -r owner/repo \
+  -p '修复并发锁死锁漏洞' \
+  -d /path/to/project \
+  --autonomous \
+  --auto-merge
+EOF
 
-### 2. 自定义脚本放哪里？
-* **项目内脚本**：所有看门狗与调度工具均保存在仓库的 `scripts/` 目录下：
-  - `scripts/watchdogs/jules_watchdog.sh`：Google Cloud Jules 云端流水线看门狗。
-  - `scripts/watchdogs/pve_watchdog.sh`：远端服务器调度看门狗。
-  - `scripts/meta_resolver.py`：集中式元数据路径寻址器。
-* **全局快捷调用建议（可选）**：
-  ```bash
-  mkdir -p ~/.gemini/config/scripts
-  ln -sf $(pwd)/scripts/watchdogs/jules_watchdog.sh ~/.gemini/config/scripts/
-  ln -sf $(pwd)/scripts/watchdogs/pve_watchdog.sh ~/.gemini/config/scripts/
-  ```
+# 方式 B：派发至服务器常驻的 agy 智能体自执行会话
+bash scripts/watchdogs/pve_watchdog.sh -t auth_001 -a dev -d /path/to/project -p "实现 Redis 缓存" -h my-server
+```
 
 ---
 
-## 7. 📁 完整项目文件结构与许可证
+## 5. 🎛️ 架构预设切换器 (`configure.py`)
+
+`agy-disciple` 提供了一体化配置管理脚本，方便在本地模式与远端服务器模式之间瞬间无缝切换：
+
+```bash
+# 查看当前激活的技能与预设映射状态
+python configure.py --status
+
+# 运行完整环境诊断
+python configure.py --doctor
+
+# 切换为本地单机预设（本地 Dev + 代码库内元数据）
+python configure.py --preset=standalone
+
+# 切换为远端服务器预设（远端服务器调度 + 集中式元数据）
+python configure.py --preset=server-centralized
+
+# 精细化维度调整：
+python configure.py --topology=server    # 仅调整运行拓扑 (local | server)
+python configure.py --meta=centralized   # 仅调整元数据模式 (in-repo | centralized)
+```
+
+---
+
+## 6. 🧭 工业级看门狗与自动化流水线
+
+看门狗脚本位于 `scripts/watchdogs/`，为长周期研发保驾护航：
+
+- **`jules_watchdog.sh`**：
+  - 通过 REST API / CLI 托管 Google Cloud Jules 会话全生命周期；
+  - 集成 **Git 预检对齐机制 (`-d`)** 与 **全自主三重防御体系 (`--autonomous`)**；
+  - 自动轮询会话状态，并在验证通过后配合 GitHub CLI 自动完成 Squash 合并。
+- **`pve_watchdog.sh`**：
+  - 在远端服务器的独立 Zellij 标签页中拉起 `agy` 进程；
+  - 轮询监控 `/tmp/<Task_ID>.signal` 信号文件，完成异步事件唤醒。
+
+```bash
+chmod +x scripts/watchdogs/*.sh
+```
+
+---
+
+## 7. 📁 仓库代码结构
 
 ```text
 agy-disciple/
 ├── plugin.json                 # Antigravity 插件配置清单
-├── README.md                   # 英文主文档
-├── README_zh.md                # 简体中文文档
-├── LICENSE                     # MIT 开源协议
-├── configure.py                # 模式与变体一键切换工具 (含 --doctor)
+├── configure.py                # 预设切换器与体检诊断脚本 (--doctor)
+├── README.md                   # 英文说明文档
+├── README_zh.md                # 简体中文说明文档
+├── LICENSE                     # MIT 开源许可证
 │
-├── agents/                     # Sub-Agents 定义
-│   ├── dev.yaml                # 本地研发 Agent (草稿隔离法、沙盒自测)
-│   ├── jules-dev.yaml          # Google Cloud Jules 研发 Agent (Gemini 3.1 Pro)
-│   ├── merger.yaml             # 合并 Agent (安全备份、原子替换)
-│   └── ops.yaml                # 运维 Agent (安全运维、命令字典)
+├── agents/                     # 智能体 Prompt 角色规范
+│   ├── dev.yaml                # 原生研发智能体 (草稿后缀与沙箱验证)
+│   ├── jules-dev.yaml          # Google Cloud Jules 研发智能体 (Gemini 3.1 Pro)
+│   ├── merger.yaml             # 合并智能体 (.bak 备份与原子文件替换)
+│   └── ops.yaml                # 运维智能体 (命令字典记录与安全执行)
 │
-├── skills/                     # 核心与进阶技能套件
-│   ├── dev-manager/            # 研发流程调度 (支持 local / server / jules 引擎)
-│   ├── project-manager/        # 项目元数据与看板管理 (in-repo / centralized)
-│   ├── task-breakdown/         # 需求粒度拆解与两轨确认
-│   ├── extract-knowledge/      # 知识提取与防坑公墓
-│   ├── ops-manager/            # 运维脚本安全执行
-│   ├── test-environment/      # 测试服务管理
-│   ├── night-shift/            # 离线夜班自主接力
-│   ├── pve-dispatch/           # 远端服务器与多机任务分发
-│   └── setup-mutagen/          # 智能语言检测与 Mutagen 双向同步
+├── skills/                     # 模块化工程技能库
+│   ├── dev-manager/            # 研发引擎调度 (本地 / 远端服务器)
+│   ├── project-manager/        # 项目元数据与看板 (代码库内 / 集中式)
+│   ├── task-breakdown/         # 任务原子拆解与双轨方案确认
+│   ├── extract-knowledge/      # 知识沉淀与坟场雷达扫描
+│   ├── ops-manager/            # 生产脚本与部署管控
+│   ├── test-environment/      # 测试服务与预览环境管理
+│   ├── night-shift/            # 离线无人值守夜班协议
+│   ├── pve-dispatch/           # 远端服务器 SSH 调度分流
+│   └── setup-mutagen/          # 智能生态识别与 Mutagen 同步初始化
 │
-├── mcp/                        # 配套 MCP 服务源码
-│   └── kanban-task-manager/    # 任务看板 FastMCP 服务端
+├── mcp/                        # Model Context Protocol 工具服务
+│   └── kanban-task-manager/    # 独立 FastMCP 任务看板服务端
 │
 └── scripts/
-    ├── watchdogs/              # 生产级自动化看门狗
-    │   ├── jules_watchdog.sh   # Google Jules 云端流水线看门狗
+    ├── watchdogs/              # 工业级后台看门狗脚本
+    │   ├── jules_watchdog.sh   # Google Cloud Jules 自主看门狗
     │   └── pve_watchdog.sh     # 远端 SSH / agy CLI 看门狗
-    └── meta_resolver.py        # 集中式元数据路径解析工具
+    └── meta_resolver.py        # 集中式元数据路径解析器
 ```
 
-本项目基于 [MIT License](LICENSE) 协议开源。
+---
+
+## 8. 🤝 参与贡献
+
+欢迎提出 Issue、提交 PR 或提出新功能设想！
+
+1. Fork 本仓库：`git clone https://github.com/catclever/agy-disciple.git`
+2. 创建您的特性分支：`git checkout -b feat/my-feature`
+3. 提交代码变更：`git commit -m 'feat: add some feature'`
+4. 推送至远端分支：`git push origin feat/my-feature`
+5. 在 GitHub 上发起 Pull Request
+
+---
+
+## 9. 📄 开源许可证
+
+本项目基于 **MIT License** 开源。详情参见 [LICENSE](LICENSE) 文件。
+
+<div align="center">
+
+Made with ❤️ for the **Google Antigravity** community.
+
+</div>
