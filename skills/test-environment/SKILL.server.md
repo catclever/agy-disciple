@@ -21,3 +21,10 @@ This skill dictates the standard operating procedure for launching dev servers, 
 
 ## Coordination with Night Shift
 When executing autonomous handoffs, verify that the remote test environment is running so that autonomous sub-agents can perform live integration tests if needed.
+
+---
+
+## Service Monitoring & Lifecycle Management
+- **List Sessions**: Check running services via `ssh <REMOTE_HOST> "zellij list-sessions"` (or `tmux ls`).
+- **Inspect Console / Logs**: Attach to the service session or inspect stdout/stderr logs.
+- **Stop Service**: Terminate the dedicated multiplexer tab or session once verification or autonomous workflows finish.

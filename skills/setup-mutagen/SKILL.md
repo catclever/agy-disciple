@@ -28,6 +28,39 @@ Activate this skill whenever:
 
 ---
 
+## Language & Framework Detection Matrix
+
+The skill inspects project root and nested frontend directories to apply the corresponding ignore rules:
+
+| Ecosystem | Manifest Indicators | Key Ignore Patterns |
+| :--- | :--- | :--- |
+| **Universal / OS** | All projects | `.DS_Store`, `.idea/`, `.vscode/`, `.gemini/`, `.agent/`, `.codex/`, `*.log`, `tmp/`, `temp/` |
+| **Wails Desktop** | `wails.json` | `build/bin/`, `build/windows/*.syso`, `frontend/dist/`, `frontend/node_modules/`, `wails-*.log` *(Note: `build/` root is preserved for assets)* |
+| **Nested Frontend** | `frontend/`, `web/`, `client/`, `ui/` | `<dir>/node_modules/`, `<dir>/dist/`, `<dir>/build/`, `<dir>/.next/`, `<dir>/.turbo/` |
+| **Go** | `go.mod`, `go.sum`, `*.go` | `bin/`, `vendor/`, `*.test`, `*.out`, `*.exe`, `*.so`, `*.dylib` |
+| **Node / Web** | `package.json`, `pnpm-lock.yaml`, `yarn.lock`, `bun.lockb` | `node_modules/`, `dist/`, `build/`, `.next/`, `.nuxt/`, `.output/`, `.turbo/`, `coverage/` |
+| **Python** | `pyproject.toml`, `requirements.txt`, `setup.py`, `Pipfile`, `uv.lock` | `.venv/`, `venv/`, `env/`, `__pycache__/`, `*.pyc`, `.pytest_cache/`, `.mypy_cache/`, `*.egg-info/`, `dist/` |
+| **Rust** | `Cargo.toml`, `Cargo.lock` | `target/` |
+| **Ruby** | `Gemfile`, `Gemfile.lock` | `.bundle/`, `vendor/bundle/` |
+| **Java / JVM** | `pom.xml`, `build.gradle`, `gradlew` | `target/`, `build/`, `.gradle/`, `*.class` |
+| **C / C++** | `CMakeLists.txt`, `Makefile`, `meson.build` | `build/`, `cmake-build-*/`, `*.o`, `*.a`, `*.so`, `*.dylib` |
+| **Swift** | `Package.swift` | `.build/`, `.swiftpm/`, `DerivedData/` |
+
+---
+
+## Critical Handling: Packaging Artifacts & Embedded Dist
+
+### 1. Wails Desktop Applications (`wails.json`)
+Wails combines a Go backend with an embedded web frontend using `//go:embed all:frontend/dist`.
+- **`frontend/dist/` MUST be ignored**:
+  Building on the remote server automatically invokes frontend build steps, generating static assets remotely. Syncing hundreds of hashed assets back and forth causes disk churn and dirty Git states.
+- **`build/bin/` MUST be ignored**:
+  Contains platform-dependent native binaries (e.g. Linux ELF on server vs macOS `.app` locally).
+- **Never blanket-ignore `build/` in Wails**:
+  Wails stores native packaging templates in `build/darwin` (Info.plist, icons) and `build/windows` (manifests). Blanket-ignoring `build/` breaks compilation. Only `build/bin/` and build outputs should be ignored.
+
+---
+
 ## Standard Workflow: Helper Script
 
 Run the bundled inspector:

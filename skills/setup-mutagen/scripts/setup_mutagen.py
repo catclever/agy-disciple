@@ -28,6 +28,7 @@ COMMON_IGNORES: List[str] = [
     "*~",
     ".agent/",
     ".gemini/",
+    ".codex/",
     "*.log",
     "tmp/",
     "temp/",
@@ -365,8 +366,9 @@ def main():
         print(f"Error: {project_path} is not a valid directory.", file=sys.stderr)
         sys.exit(1)
 
-    project_name = args.name or project_path.name
-    remote_dir = args.remote_dir or f"{args.remote_base.rstrip('/')}/{project_name}"
+    folder_name = project_path.name
+    project_name = args.name or folder_name.replace("_", "-")
+    remote_dir = args.remote_dir or f"{args.remote_base.rstrip('/')}/{folder_name}"
 
     detected = detect_project_types(project_path)
     detected_names = [name for name, _ in detected] or ["Generic / Unknown"]
