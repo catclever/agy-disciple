@@ -2,72 +2,123 @@
 name: night-shift
 description: Standard Operating Procedures for transferring the agent to an autonomous remote server environment when the user goes off work.
 ---
-# Night Shift & Autonomous Handoff Protocol (Server Mode)
+# Night Shift & Autonomous Handoff Protocol
 
-When the user indicates they are leaving work or explicitly triggers the "Night Shift" (e.g., "转到服务器", "进入夜班"), execute this protocol to transition the current workspace into a fully autonomous, unattended run on the remote compute server.
+When the user indicates they are leaving work or explicitly triggers the "Night Shift" (e.g., "转到后台", "我下班了"), you MUST execute this protocol to transition the current conversation into a fully autonomous, unattended run.
 
 ## Routing: Choose the Execution Engine
 
-> [!IMPORTANT]
-> **Default Path**: Remote Server Multiplexer Session with native `agy` CLI agent (**Path A**). Works for all repositories without requiring GitHub cloud integration or Ultra subscriptions.
-> **Opt-in Path**: Google Cloud Jules autonomous pipeline (**Path B**), used ONLY when the user explicitly requests Jules (e.g., "夜间用 jules 跑", "run night shift with jules") AND the project is pushed to GitHub.
+Select the overnight execution path based on the nature of the remaining tasks:
+- **Path A (Well-Scoped Unattended Task Queue — No GitHub Required)**: Use the **Descartes Autonomous Pipeline (`descartes_watchdog.sh --auto-merge`)** for serial, single-module coding tasks with deterministic test verification in isolated git worktrees.
+- **Path B (Heavy / Multi-File GitHub Task Queue — Cloud Sandbox + PR Auto-Merge)**: Use the **Google Remote Agent Autonomous Pipeline (`remote_watchdog.sh --autonomous --auto-merge -a <account>`)** for heavier multi-file features or refactors on GitHub-backed projects (`<owner>/<project>`), leveraging server multi-account rotation.
+- **Path C (Interactive / Complex Master Controller Handoff)**: Use the **Antiverse Zellij Protocol (`antiverse-run`)** for open-ended, multi-agent, or server-local service orchestration sessions.
 
 ---
 
-## Path A: Remote Multiplexer Session (Default: Server-Native `agy`)
+## Path A: Descartes Autonomous Pipeline (`descartes_watchdog.sh --auto-merge`)
 
-### Phase 1: Context Gathering & Clean Up
-1. Stop local watchdogs or background monitors.
-2. Note down running task IDs on remote server.
-3. Pre-handoff Git Checkpoint on remote server.
+> [!TIP]
+> **Complete Sleep / Lid-Close Immunity**: `descartes_watchdog.sh` runs directly on the remote server in isolated git worktrees (`descartes/<Task_ID>`) without requiring local client connectivity or GitHub round-trips.
 
-### Phase 2: Handoff Execution
-Spawn a new master tab inside the persistent multiplexer session (e.g., Zellij `Antiverse` or tmux):
+### Step 1: Pre-Handoff Checkpoint & Sync (Remote Server)
+Ensure all work is synced and committed on the server (`<remote_dir>/<project>`) so each worktree starts from a clean, up-to-date base branch:
 ```bash
-ssh <REMOTE_HOST> "zellij --session <SESSION_NAME> action new-tab --name '[<project_name>]' && zellij --session <SESSION_NAME> action write-chars 'cd <remote_dir> && agy --remote-control --dangerously-skip-permissions -i \"\$(cat commands/night_shift.txt)\"; echo \"Agent exited with code \$?\"' && zellij --session <SESSION_NAME> action send-keys 'Enter'"
+ssh <REMOTE_HOST> "cd <remote_dir>/<project> && git status --short && git add . && git commit -m 'chore(auto): Pre-handoff Night Shift checkpoint' || true"
 ```
 
-### Phase 3: Autonomous SOPs on Server
-1. **Git Checkpoint Rule**: Commit before merging (`git add . && git commit -m "chore(auto): Night Shift checkpoint"`).
-2. **Infinite Loop Prevention**: If a task fails 3 consecutive times, mark it as `status: failed_needs_human`, kill the dev agent, and proceed to next task.
-
----
-
-## Path B: Headless Autonomous Cloud Pipeline (Opt-in: Explicit Jules Request)
-
-### Step 1: Pre-Handoff Checkpoint & Push
-Ensure all local work is committed and pushed to remote:
-```bash
-git status
-git add . && git commit -m "chore(auto): Pre-handoff Night Shift checkpoint"
-git push origin main
-```
-
-### Step 2: Queue Remaining Tasks to Autonomous Runner
-Compile pending tasks from `tasks/` into an automated sequential pipeline on the remote server:
-
+### Step 2: Queue Remaining Tasks to Descartes with `--verify` and `--auto-merge`
+Compile pending well-scoped tasks from `tasks/` into an automated serial pipeline on the server.
 > [!IMPORTANT]
-> **Mandatory Autonomous Flags**: In Night Shift mode, tasks MUST be invoked with `--autonomous` (arming Defenses 1, 2, 3 to prevent plan/clarification stalls), `-d "<project_dir>"` (pre-flight Git sync), and `--auto-merge` (automatic squash merge once CI passes).
+> **Serial Execution & Mandatory Verification**: Because the Descartes Hub is shared, tasks MUST run serially at night (never in parallel) and include both `--verify "<test cmd>"` and `--auto-merge` (automatic squash merge into the base branch once verification passes).
 
+Launch the unattended runner in background on the server:
 ```bash
-ssh <REMOTE_HOST> "nohup bash -c '
-  for task in <TASK_LIST>; do
-    bash scripts/watchdogs/jules_watchdog.sh \
-      -t \"\$task\" \
-      -r \"<owner/repo>\" \
-      -p \"<Prompt>\" \
-      -d \"<project_dir>\" \
-      --autonomous \
-      --auto-merge
-    if [ \$(cat /tmp/\${task}.signal | grep -c \"DONE\") -eq 0 ]; then
-      echo \"Task \$task failed, stopping pipeline.\"
-      break
-    fi
-  done
-' > /tmp/night_shift.log 2>&1 &"
+ssh <REMOTE_HOST> 'bash -s' << 'EOF'
+cat > /tmp/descartes_night_runner.sh << 'RUNNER'
+declare -A PROMPTS=(
+  ["<task_a>"]="<Prompt A>"
+  ["<task_b>"]="<Prompt B>"
+)
+for task in <task_a> <task_b>; do
+  bash scripts/watchdogs/descartes_watchdog.sh \
+    -t "$task" \
+    -d "<remote_dir>/<project>" \
+    -p "${PROMPTS[$task]}" \
+    --verify "<test cmd>" \
+    --auto-merge
+  if [ "$(grep -c DONE /tmp/${task}.signal)" -eq 0 ]; then
+    echo "Task $task failed, stopping pipeline."
+    break
+  fi
+done
+RUNNER
+nohup bash /tmp/descartes_night_runner.sh > /tmp/descartes_night_shift.log 2>&1 &
+EOF
 ```
 
 ### Step 3: Inform User & Rollback Safety
-Inform the user that Night Shift is handed off to Jules.
-- The user can inspect completed tasks next morning via `git pull`.
-- Each task PR or squash commit is cleanly revertible.
+Inform the user that Night Shift is handed off to the Descartes autonomous pipeline with automated squash merging.
+- **Next Morning**: User reviews `git log` on server (or via Mutagen sync locally) to inspect all merged commits.
+- **Rollback Guarantee**: Each task is merged as a single squash commit (`feat(descartes): <Task_ID>`). Any suboptimal task can be cleanly reverted via `git revert <commit_hash>`, and any failed task leaves its `descartes/<Task_ID>` branch intact for review.
+
+---
+
+## Path B: Google Remote Agent Autonomous Pipeline (`remote_watchdog.sh --autonomous --auto-merge -a <account>`)
+
+> [!TIP]
+> **Cloud-Scale Execution with Multi-Account Quota Isolation**: `remote_watchdog.sh` launches Google Antigravity Remote Agents (`agy --remote-agent`), automatically injects `IRON_RULES.md`, guards account switching with a `flock` mutex, enforces Defenses 1–3 against stalls, and squash-merges PRs on GitHub.
+
+### Step 1: Distill Context & Select Account
+1. Query `kb_search` for the target project and synthesize architectural constraints into each task prompt.
+2. Choose the Google account (`-a dev1@example.com` or `-a dev2@example.com`), or alternate accounts across tasks in the queue.
+
+### Step 2: Launch Overnight Remote Agent Pipeline
+```bash
+ssh <REMOTE_HOST> 'bash -s' << 'EOF'
+cat > /tmp/remote_night_runner.sh << 'RUNNER'
+declare -A PROMPTS=(
+  ["<task_a>"]="<Distilled Prompt A>"
+  ["<task_b>"]="<Distilled Prompt B>"
+)
+declare -A ACCOUNTS=(
+  ["<task_a>"]="dev1@example.com"
+  ["<task_b>"]="dev2@example.com"
+)
+for task in <task_a> <task_b>; do
+  bash scripts/watchdogs/remote_watchdog.sh \
+    -t "$task" \
+    -r "<owner>/<project>" \
+    -d "<remote_dir>/<project>" \
+    -b "main" \
+    -a "${ACCOUNTS[$task]}" \
+    --tier "dev" \
+    --autonomous \
+    --auto-merge \
+    -p "${PROMPTS[$task]}"
+  if [ "$(grep -c DONE /tmp/${task}.signal)" -eq 0 ]; then
+    echo "Remote Task $task failed, stopping pipeline."
+    break
+  fi
+done
+RUNNER
+nohup bash /tmp/remote_night_runner.sh > /tmp/remote_night_shift.log 2>&1 &
+EOF
+```
+
+---
+
+## Path C: Antiverse Zellij Protocol (`antiverse-run`)
+
+All overnight tasks, master controllers, and dispatched subagents can also be launched as **dedicated, isolated Zellij sessions** via `antiverse-run` (e.g., `[<project_name>] night`, `[<project_name>] dev-<task_id>`).
+
+1. Write prompt to command file:
+   ```text
+   /goal Complete remaining tasks autonomously overnight.
+   ```
+2. Launch master session:
+   ```bash
+   ssh <REMOTE_HOST> "antiverse-run --name '[<project_name>] night' --tier dev --cwd '<remote_dir>/<project>' --force -- agy -i /tmp/night_shift.txt"
+   ```
+
+## Infinite Loop Prevention
+- If a task fails 3 consecutive times, mark it as `status: failed_needs_human` in Kanban, terminate the subagent, and advance to the next task in the queue.

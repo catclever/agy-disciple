@@ -4,7 +4,7 @@ description: 'AI 知识提取与沉淀超级指令 (Centralized Mode)'
 ---
 <system_instruction>
 你现在进入了「项目知识提取与沉淀模式」。
-这是一条最高优先级的 Meta-Prompt，旨在将当前对话中的价值信息提取并规范化为项目专属知识，统一集中落盘至用户中央元数据目录中。
+这是一条最高优先级的 Meta-Prompt，旨在将当前对话中的价值信息提取并规范化为项目专属知识，集中存储在项目元数据目录中。
 
 ### 1. 什么是知识库 (Knowledge Base)?
 - **定位**：知识库 (`kb/`) 是整个项目的 **Single Source of Truth (唯一事实来源)**。
@@ -25,17 +25,21 @@ description: 'AI 知识提取与沉淀超级指令 (Centralized Mode)'
 **分支 3：防坑公墓（Anti-Pattern / Graveyard）**
 - **动作**：如果当前对话是在记录“失败的方案”、“死胡同”或“踩过的坑”，则属于**负面知识**。
 - **格式**：提取出：1. 试图解决什么问题 2. 失败的方案是什么 3. 为什么失败 4. 绝对不要做什么。
-- **路由**：此类知识**必须**落盘至 `<META_DIR>/kb/graveyard/[文件名].md`，并将其摘要更新至 `<META_DIR>/kb/graveyard/grave.md`。
+- **路由**：此类知识**必须**落盘至 `kb/graveyard/[文件名].md`，并将其摘要更新至 `kb/graveyard/grave.md`。
 
 ### 3. 统一落盘与汇报逻辑 (Unified Save & Report)
-无论是哪种分支，准备好内容后，**必须**严格执行以下三步闭环：
+无论是哪种分支，准备好结构化内容后，**必须通过 `knowledge-manager` MCP 工具执行原子化沉淀**（严禁使用原始文件工具手动拼写 Frontmatter 或手动修改索引文件）：
 
-1. **定位中央元数据目录**：
-   通过 `python3 scripts/meta_resolver.py "$PWD"` 得到 `$META_DIR`。
-2. **生成正文并落盘**：
-   按照标准 Markdown 排版。顶部**必须**包含 YAML Frontmatter（格式：`---` 换行 `description: '简短描述'` 换行 `---`）。
-   将内容保存到 `$META_DIR/kb/`（或 `$META_DIR/kb/graveyard/`）目录下的 `[文件名].md` 中。
-3. **更新索引与汇报**：
-   - 必须读取对应的索引文件（`$META_DIR/kb/knowledge.md` 或 `$META_DIR/kb/graveyard/grave.md`），将新知识点的链接和简述追加进去。
-   - 用最简短的话术向用户汇报：“知识已提取至 `[文件路径]`，并已同步至索引。”
+1. **调用 `kb_record` 工具**：
+   - **正面技术知识（分支 1 / 分支 2）**：
+     调用 `kb_record(project="<项目名或$PWD>", scope="active", title="<标题>", summary="<一句话摘要>", content="<Markdown正文>", filename="<可选英文文件名.md>")`
+   - **防坑公墓（分支 3）**：
+     调用 `kb_record(project="<项目名或$PWD>", scope="grave", title="<反模式标题>", summary="<避坑摘要>", content="<排错教训与绝对不要做的事>", filename="<可选英文文件名.md>")`
+
+2. **引擎自动闭环特性**：
+   - 知识管理 MCP 服务端将通过 `meta_resolver.py` 精准定位项目元数据目录，自动规范化文件名与 YAML Frontmatter 并落盘；
+   - 自动原子化追加或更新 `kb/knowledge.md`（Active）或 `kb/graveyard/grave.md`（Grave）索引，彻底消除人工维护索引失真与格式不一致风险。
+
+3. **极简汇报**：
+   - 用最简短的话术向用户汇报：“知识已通过 MCP 沉淀至 `[文件名]`，并已自动同步至项目索引。”
 </system_instruction>

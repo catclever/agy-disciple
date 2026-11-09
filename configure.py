@@ -27,7 +27,7 @@ VARIANTS = {
         "local": "SKILL.local.md",
         "server": "SKILL.server.md"
     },
-    "test-environment": {
+    "dev-server": {
         "local": "SKILL.local.md",
         "server": "SKILL.server.md"
     },
@@ -58,7 +58,7 @@ def show_status():
         if not dest.exists():
             print(f"  • {skill_name:20}: [Missing SKILL.md]")
             continue
-        
+
         current_content = dest.read_text(encoding="utf-8")
         matched = "Custom / Unknown"
         for label, filename in mapping.items():
@@ -67,6 +67,15 @@ def show_status():
                 matched = f"{label} ({filename})"
                 break
         print(f"  • {skill_name:20}: {matched}")
+
+    print("--------------------------------------------------")
+    print(" Standalone / Universal Skills:")
+    for standalone in ["pure-remote-init", "local-to-remote-migration", "descartes-dispatch", "pve-dispatch", "task-breakdown", "ops-manager", "setup-mutagen"]:
+        dest = SKILLS_DIR / standalone / "SKILL.md"
+        if dest.exists():
+            print(f"  • {standalone:20}: Active (Universal)")
+        else:
+            print(f"  • {standalone:20}: [Not Present]")
     print("==================================================")
 
 
@@ -74,7 +83,7 @@ def run_doctor():
     print("==================================================")
     print(" agy-disciple Environment Doctor")
     print("==================================================")
-    
+
     # 1. Core Local
     print("[1] Core Local Prerequisites (Local-First Mode)")
     git_path = shutil.which("git")
@@ -82,14 +91,20 @@ def run_doctor():
         print(f"  [✓] Git                    : Found ({git_path})")
     else:
         print("  [✗] Git                    : Missing! Please install Git.")
-        
+
     py_ver = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
-    if sys.version_info >= (3, 8):
+    if sys.version_info >= (3, 10):
         print(f"  [✓] Python                 : Python {py_ver}")
     else:
-        print(f"  [✗] Python                 : Python {py_ver} (Recommend >= 3.8)")
-    print("  -> Status: Local development inside Antigravity IDE is 100% READY!\n")
-    
+        print(f"  [!] Python                 : Python {py_ver} (Recommend >= 3.10 for FastMCP)")
+
+    uv_path = shutil.which("uv")
+    if uv_path:
+        print(f"  [✓] uv (FastMCP Runner)    : Found ({uv_path})")
+    else:
+        print("  [i] uv                     : Not found. (Install via `brew install uv` to run bundled FastMCP servers)")
+    print("  -> Status: Local development inside Antigravity IDE is READY!\n")
+
     # 2. Server & Headless
     print("[2] Server & Headless Prerequisites (Remote Server / PVE)")
     agy_path = shutil.which("agy")
@@ -97,9 +112,8 @@ def run_doctor():
         print(f"  [✓] Antigravity CLI (agy)  : Found ({agy_path})")
     else:
         print("  [i] Antigravity CLI (agy)  : Not found in local PATH.")
-        print("                              Note: Only required on target server (or terminal) for headless/remote runs.")
-        print("                              See: https://antigravity.google/docs/cli")
-        
+        print("                              Note: Only required on target server or terminal for headless/remote runs.")
+
     ssh_path = shutil.which("ssh")
     if ssh_path:
         print(f"  [✓] SSH Client             : Found ({ssh_path})")
@@ -119,29 +133,41 @@ def run_doctor():
         print("  [i] Mutagen Sync           : Not found. (Optional: install via `brew install mutagen` for two-way sync)")
     print("")
 
-    # 3. Google Jules
-    print("[3] Google Jules Autonomous Cloud Pipeline")
-    jules_api_key = os.getenv("JULES_API_KEY")
-    jules_cli = shutil.which("jules")
-    if jules_api_key:
-        print(f"  [✓] Jules API Key          : Configured ($JULES_API_KEY detected)")
-    elif jules_cli:
-        print(f"  [✓] Jules CLI              : Found ({jules_cli})")
-    else:
-        print("  [i] Jules Auth             : Neither $JULES_API_KEY nor `jules` CLI detected.")
-        print("                              (Required if using Jules autonomous dispatch in night-shift / pve-dispatch)")
+    # 3. Autonomous Engines & Cloud Pipelines
+    print("[3] Autonomous Engines & Cloud Pipelines")
 
     gh_path = shutil.which("gh")
     if gh_path:
         print(f"  [✓] GitHub CLI (gh)        : Found ({gh_path})")
     else:
-        print("  [i] GitHub CLI (gh)        : Not found. (Optional: needed for Jules PR auto-merge)")
+        print("  [i] GitHub CLI (gh)        : Not found. (Recommended for Remote Agent PR creation and auto-merge)")
 
-    uv_path = shutil.which("uv")
-    if uv_path:
-        print(f"  [✓] uv (FastMCP Runner)    : Found ({uv_path})")
+    remote_wd = ROOT / "scripts" / "watchdogs" / "remote_watchdog.sh"
+    if remote_wd.exists() and os.access(remote_wd, os.X_OK):
+        print(f"  [✓] Remote Agent Watchdog  : Ready ({remote_wd.name})")
     else:
-        print("  [i] uv                     : Not found. (Optional: needed for running bundled FastMCP kanban server)")
+        print(f"  [!] Remote Agent Watchdog  : Missing or not executable ({remote_wd})")
+
+    descartes_wd = ROOT / "scripts" / "watchdogs" / "descartes_watchdog.sh"
+    if descartes_wd.exists() and os.access(descartes_wd, os.X_OK):
+        print(f"  [✓] Descartes Watchdog     : Ready ({descartes_wd.name})")
+    else:
+        print(f"  [!] Descartes Watchdog     : Missing or not executable ({descartes_wd})")
+
+    # FastMCP Stack
+    print("\n[4] FastMCP Servers")
+    kanban_srv = ROOT / "mcp" / "kanban-task-manager" / "server.py"
+    kanban_draft = ROOT / "mcp" / "kanban-task-manager" / "server_task_sync_upstream_evolution_and_descartes_engine_005.py"
+    if kanban_srv.exists() or kanban_draft.exists():
+        print("  [✓] kanban-task-manager    : Present")
+    else:
+        print("  [✗] kanban-task-manager    : Missing server.py")
+
+    kb_srv = ROOT / "mcp" / "knowledge-manager" / "server.py"
+    if kb_srv.exists():
+        print("  [✓] knowledge-manager      : Present")
+    else:
+        print("  [✗] knowledge-manager      : Missing server.py")
 
     print("==================================================")
 
@@ -152,7 +178,7 @@ def set_preset(preset_name: str):
         apply_variant("project-manager", VARIANTS["project-manager"]["in-repo"])
         apply_variant("extract-knowledge", VARIANTS["extract-knowledge"]["in-repo"])
         apply_variant("dev-manager", VARIANTS["dev-manager"]["local"])
-        apply_variant("test-environment", VARIANTS["test-environment"]["local"])
+        apply_variant("dev-server", VARIANTS["dev-server"]["local"])
         apply_variant("night-shift", VARIANTS["night-shift"]["local"])
         print("\nSuccessfully switched to: [Standalone / Local-First / In-Repo] mode.")
 
@@ -160,7 +186,7 @@ def set_preset(preset_name: str):
         apply_variant("project-manager", VARIANTS["project-manager"]["centralized"])
         apply_variant("extract-knowledge", VARIANTS["extract-knowledge"]["centralized"])
         apply_variant("dev-manager", VARIANTS["dev-manager"]["server"])
-        apply_variant("test-environment", VARIANTS["test-environment"]["server"])
+        apply_variant("dev-server", VARIANTS["dev-server"]["server"])
         apply_variant("night-shift", VARIANTS["night-shift"]["server"])
         print("\nSuccessfully switched to: [Server-Centralized / Remote Server] mode.")
     else:
@@ -202,7 +228,7 @@ def main():
 
     if args.topology:
         apply_variant("dev-manager", VARIANTS["dev-manager"][args.topology])
-        apply_variant("test-environment", VARIANTS["test-environment"][args.topology])
+        apply_variant("dev-server", VARIANTS["dev-server"][args.topology])
         apply_variant("night-shift", VARIANTS["night-shift"][args.topology])
 
 
